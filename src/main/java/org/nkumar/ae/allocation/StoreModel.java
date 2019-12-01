@@ -41,7 +41,7 @@ public final class StoreModel
         this.ratioGap = new PrimaryStockAllocationRatio(ratio);
         inventoryInfoList.forEach(info -> {
             SKUInfo skuInfo = this.skuInfoMap.get(info.getSKU());
-            Objects.requireNonNull(skuInfo, "SKU is not value : " + info.getSKU());
+            Objects.requireNonNull(skuInfo, "SKU is not valid : " + info.getSKU());
             this.ratioGap.decrementQuantity(skuInfo.getGender(), skuInfo.getShape(), info.getAvailable());
         });
     }
