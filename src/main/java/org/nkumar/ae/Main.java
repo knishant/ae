@@ -1,11 +1,13 @@
 package org.nkumar.ae;
 
+import org.nkumar.ae.allocation.Engine;
 import org.nkumar.ae.allocation.StoreModel;
 import org.nkumar.ae.input.LoadProcessor;
 import org.nkumar.ae.metadata.Processor;
 import org.nkumar.ae.model.PrimaryStockAllocationRatio;
 import org.nkumar.ae.model.SKUInfo;
 import org.nkumar.ae.model.SKUSimilarity;
+import org.nkumar.ae.model.StoreAllocation;
 import org.nkumar.ae.model.StoreInfo;
 import org.nkumar.ae.model.StoreInventoryInfo;
 import org.nkumar.ae.model.WarehouseInventoryInfo;
@@ -48,5 +50,9 @@ public final class Main
                         .thenComparingInt(StoreModel::getTotalGap)
                         .thenComparingInt(StoreModel::getGrade).reversed())
                 .collect(Collectors.toList());
+
+        Engine engine = new Engine(whInventory, storeModels, similarity);
+        List<StoreAllocation> allocate = engine.allocate();
+        System.out.println("allocate = " + allocate);
     }
 }
