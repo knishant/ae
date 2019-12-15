@@ -21,7 +21,6 @@ public final class StoreModel
     private final int totalGap;
 
     private final PrimaryStockAllocationRatio ratioGap;
-    private final Map<String/*SKU*/, SKUInfo> skuInfoMap;
 
     public StoreModel(StoreInfo storeInfo, List<StoreInventoryInfo> inventoryInfoList,
             PrimaryStockAllocationRatio ratio, List<SKUInfo> skuInfoList)
@@ -33,14 +32,14 @@ public final class StoreModel
         int totalAvailable = inventoryInfoList.stream().mapToInt(StoreInventoryInfo::getAvailable).sum();
         this.totalGap = ratio.getCapacity() - totalAvailable;
 
-        this.skuInfoMap = skuInfoList.stream()
+        Map<String/*SKU*/, SKUInfo> skuInfoMap = skuInfoList.stream()
                 .collect(Collectors.toMap(SKUInfo::getSKU, Function.identity()));
 
         //clone the PSAR and then deduct what is available
         //what remains is the gap which has to be allocated
         this.ratioGap = new PrimaryStockAllocationRatio(ratio);
         inventoryInfoList.forEach(info -> {
-            SKUInfo skuInfo = this.skuInfoMap.get(info.getSKU());
+            SKUInfo skuInfo = skuInfoMap.get(info.getSKU());
             Objects.requireNonNull(skuInfo, "SKU is not valid : " + info.getSKU());
             this.ratioGap.decrementQuantity(skuInfo.getGender(), skuInfo.getShape(), info.getAvailable());
         });
