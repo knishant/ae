@@ -3,7 +3,6 @@ package org.nkumar.ae;
 import org.nkumar.ae.allocation.Engine;
 import org.nkumar.ae.allocation.StoreModel;
 import org.nkumar.ae.input.LoadProcessor;
-import org.nkumar.ae.metadata.Processor;
 import org.nkumar.ae.model.GenderShapeSKUsMap;
 import org.nkumar.ae.model.PrimaryStockAllocationRatio;
 import org.nkumar.ae.model.SKUInfo;
@@ -27,7 +26,7 @@ public final class Main
         File root = new File("sample");
         List<SKUInfo> skuInfoList = LoadProcessor.loadSKU(new File(root, "skuinfo.csv"));
 
-        SKUSimilarity similarity = Processor.buildSKUSimilarity(skuInfoList);
+        SKUSimilarity similarity = SKUSimilarity.buildSKUSimilarity(skuInfoList);
 
         GenderShapeSKUsMap genderShapeSKUsMap
                 = GenderShapeSKUsMap.buildGenderShapeSKUsMap(skuInfoList, similarity);
