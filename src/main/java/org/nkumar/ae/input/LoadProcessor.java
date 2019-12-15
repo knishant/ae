@@ -6,6 +6,7 @@ import com.opencsv.bean.CsvCustomBindByName;
 import org.nkumar.ae.converter.GenderBeanField;
 import org.nkumar.ae.model.Gender;
 import org.nkumar.ae.model.PrimaryStockAllocationRatio;
+import org.nkumar.ae.model.SKUInfo;
 import org.nkumar.ae.model.StoreInfo;
 import org.nkumar.ae.model.StoreInventoryInfo;
 import org.nkumar.ae.model.WarehouseInventoryInfo;
@@ -52,6 +53,11 @@ public final class LoadProcessor
     public static List<StoreInfo> loadStoreInfo(File path)
     {
         return CSVUtil.loadCSV(path, StoreInfo.class);
+    }
+
+    public static List<SKUInfo> loadSKU(File path)
+    {
+        return CSVUtil.loadCSV(path, SKUInfo.class);
     }
 
     private static final class PSARRow

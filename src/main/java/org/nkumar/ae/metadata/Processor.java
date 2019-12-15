@@ -2,9 +2,7 @@ package org.nkumar.ae.metadata;
 
 import org.nkumar.ae.model.SKUInfo;
 import org.nkumar.ae.model.SKUSimilarity;
-import org.nkumar.ae.util.CSVUtil;
 
-import java.io.File;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -15,11 +13,6 @@ public final class Processor
 {
     private Processor()
     {
-    }
-
-    public static List<SKUInfo> loadSKU(File path)
-    {
-        return CSVUtil.loadCSV(path, SKUInfo.class);
     }
 
     public static SKUSimilarity buildSKUSimilarity(List<SKUInfo> skuInfos)

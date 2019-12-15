@@ -25,7 +25,7 @@ public final class Main
     {
         int moq = 10;
         File root = new File("sample");
-        List<SKUInfo> skuInfoList = Processor.loadSKU(new File(root, "skuinfo.csv"));
+        List<SKUInfo> skuInfoList = LoadProcessor.loadSKU(new File(root, "skuinfo.csv"));
 
         SKUSimilarity similarity = Processor.buildSKUSimilarity(skuInfoList);
 

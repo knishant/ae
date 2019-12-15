@@ -1,6 +1,7 @@
 package org.nkumar.ae.metadata;
 
 import org.junit.Test;
+import org.nkumar.ae.input.LoadProcessor;
 import org.nkumar.ae.model.Gender;
 import org.nkumar.ae.model.Material;
 import org.nkumar.ae.model.SKUInfo;
@@ -16,7 +17,7 @@ public final class ProcessorTest
     @Test
     public void loadTest()
     {
-        List<SKUInfo> skuInfos = Processor.loadSKU(new File("src/test/resources/skuinfo/skuinfo1.csv"));
+        List<SKUInfo> skuInfos = LoadProcessor.loadSKU(new File("src/test/resources/skuinfo/skuinfo1.csv"));
         assertEquals(1, skuInfos.size());
         SKUInfo info = skuInfos.get(0);
         assertEquals("SKU-1", info.getSKU());
