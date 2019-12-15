@@ -1,10 +1,7 @@
 package org.nkumar.ae.input;
 
-import com.opencsv.CSVReader;
 import com.opencsv.bean.CsvBindByName;
 import com.opencsv.bean.CsvCustomBindByName;
-import com.opencsv.bean.CsvToBean;
-import com.opencsv.bean.CsvToBeanBuilder;
 
 import org.nkumar.ae.converter.GenderBeanField;
 import org.nkumar.ae.model.Gender;
@@ -12,10 +9,9 @@ import org.nkumar.ae.model.PrimaryStockAllocationRatio;
 import org.nkumar.ae.model.StoreInfo;
 import org.nkumar.ae.model.StoreInventoryInfo;
 import org.nkumar.ae.model.WarehouseInventoryInfo;
+import org.nkumar.ae.util.CSVUtil;
 
 import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -32,78 +28,30 @@ public final class LoadProcessor
     public static Map<String/*storeId*/, PrimaryStockAllocationRatio> loadPSAR(File path)
     {
         Map<String, PrimaryStockAllocationRatio> map = new TreeMap<>();
-        try (CSVReader r = new CSVReader(new FileReader(path)))
-        {
-            CsvToBean<PSARRow> csvToBean = new CsvToBeanBuilder<PSARRow>(r)
-                    .withType(PSARRow.class)
-                    .withIgnoreLeadingWhiteSpace(true)
-                    .build();
-            List<PSARRow> list = csvToBean.parse();
-            for (PSARRow row : list)
-            {
-                PrimaryStockAllocationRatio ratio = map
-                        .computeIfAbsent(row.getStoreId(), storeId -> new PrimaryStockAllocationRatio());
-                ratio.setQuantity(row.getGender(), row.getShape(), row.getQuantity());
-            }
-        }
-        catch (IOException e)
-        {
-            throw new RuntimeException(e);
-        }
+        CSVUtil.loadCSV(path, PSARRow.class).forEach(row -> {
+            PrimaryStockAllocationRatio ratio = map
+                    .computeIfAbsent(row.getStoreId(), storeId -> new PrimaryStockAllocationRatio());
+            ratio.setQuantity(row.getGender(), row.getShape(), row.getQuantity());
+        });
         return map;
     }
 
     public static WarehouseInventoryInfo loadWarehouseInventoryInfo(File path)
     {
-        try (CSVReader r = new CSVReader(new FileReader(path)))
-        {
-            CsvToBean<WarehouseInventoryRow> csvToBean = new CsvToBeanBuilder<WarehouseInventoryRow>(r)
-                    .withType(WarehouseInventoryRow.class)
-                    .withIgnoreLeadingWhiteSpace(true)
-                    .build();
-            Map<String, Integer> map = csvToBean.parse().stream()
-                    .collect(Collectors.toMap(WarehouseInventoryRow::getSKU, WarehouseInventoryRow::getAvailable));
-            return new WarehouseInventoryInfo(map);
-        }
-        catch (IOException e)
-        {
-            throw new RuntimeException(e);
-        }
+        Map<String, Integer> map = CSVUtil.loadCSV(path, WarehouseInventoryRow.class).stream()
+                .collect(Collectors.toMap(WarehouseInventoryRow::getSKU, WarehouseInventoryRow::getAvailable));
+        return new WarehouseInventoryInfo(map);
     }
 
     public static Map<String/*storeId*/, List<StoreInventoryInfo>> loadStoreInventoryInfo(File path)
     {
-        try (CSVReader r = new CSVReader(new FileReader(path)))
-        {
-            CsvToBean<StoreInventoryInfo> csvToBean = new CsvToBeanBuilder<StoreInventoryInfo>(r)
-                    .withType(StoreInventoryInfo.class)
-                    .withIgnoreLeadingWhiteSpace(true)
-                    .build();
-            return csvToBean.parse().stream()
-                    .collect(Collectors.groupingBy(StoreInventoryInfo::getStoreId));
-        }
-        catch (IOException e)
-        {
-            throw new RuntimeException(e);
-        }
-
+        return CSVUtil.loadCSV(path, StoreInventoryInfo.class).stream()
+                .collect(Collectors.groupingBy(StoreInventoryInfo::getStoreId));
     }
 
     public static List<StoreInfo> loadStoreInfo(File path)
     {
-        try (CSVReader r = new CSVReader(new FileReader(path)))
-        {
-            CsvToBean<StoreInfo> csvToBean = new CsvToBeanBuilder<StoreInfo>(r)
-                    .withType(StoreInfo.class)
-                    .withIgnoreLeadingWhiteSpace(true)
-                    .build();
-            return csvToBean.parse();
-        }
-        catch (IOException e)
-        {
-            throw new RuntimeException(e);
-        }
-
+        return CSVUtil.loadCSV(path, StoreInfo.class);
     }
 
     private static final class PSARRow

@@ -1,15 +1,10 @@
 package org.nkumar.ae.metadata;
 
-import com.opencsv.CSVReader;
-import com.opencsv.bean.CsvToBean;
-import com.opencsv.bean.CsvToBeanBuilder;
-
 import org.nkumar.ae.model.SKUInfo;
 import org.nkumar.ae.model.SKUSimilarity;
+import org.nkumar.ae.util.CSVUtil;
 
 import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -24,18 +19,7 @@ public final class Processor
 
     public static List<SKUInfo> loadSKU(File path)
     {
-        try (CSVReader r = new CSVReader(new FileReader(path)))
-        {
-            CsvToBean<SKUInfo> csvToBean = new CsvToBeanBuilder<SKUInfo>(r)
-                    .withType(SKUInfo.class)
-                    .withIgnoreLeadingWhiteSpace(true)
-                    .build();
-            return csvToBean.parse();
-        }
-        catch (IOException e)
-        {
-            throw new RuntimeException(e);
-        }
+        return CSVUtil.loadCSV(path, SKUInfo.class);
     }
 
     public static SKUSimilarity buildSKUSimilarity(List<SKUInfo> skuInfos)
