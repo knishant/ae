@@ -1,6 +1,5 @@
 package org.nkumar.ae.model;
 
-import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.TreeMap;
@@ -14,15 +13,10 @@ public final class PrimaryStockAllocationRatio
         map.computeIfAbsent(gender, g -> new TreeMap<>()).put(shape, quantity);
     }
 
-    public int getQuantity(Gender gender, String shape)
-    {
-        return map.getOrDefault(gender, Collections.emptyMap()).getOrDefault(shape, 0);
-    }
-
     public void decrementQuantity(Gender gender, String shape, int quantity)
     {
         map.computeIfAbsent(gender, g -> new TreeMap<>())
-                .compute(shape, (s, oldQuantity) -> oldQuantity == null? -quantity: oldQuantity-quantity);
+                .compute(shape, (s, oldQuantity) -> oldQuantity == null ? -quantity : oldQuantity - quantity);
     }
 
     public int getCapacity()
@@ -41,5 +35,18 @@ public final class PrimaryStockAllocationRatio
     {
         //just clone the values
         ratio.map.forEach((gender, shapeMap) -> this.map.put(gender, new TreeMap<>(shapeMap)));
+    }
+
+    public void allocateForEach(Allocator allocator)
+    {
+        map.forEach((gender, shapeMap) ->
+                shapeMap.forEach((shape, count) ->
+                {
+                    int allocate = allocator.allocate(gender, shape, count);
+                    if (allocate > 0)
+                    {
+                        decrementQuantity(gender, shape, allocate);
+                    }
+                }));
     }
 }

@@ -4,6 +4,7 @@ import org.nkumar.ae.allocation.Engine;
 import org.nkumar.ae.allocation.StoreModel;
 import org.nkumar.ae.input.LoadProcessor;
 import org.nkumar.ae.metadata.Processor;
+import org.nkumar.ae.model.GenderShapeSKUsMap;
 import org.nkumar.ae.model.PrimaryStockAllocationRatio;
 import org.nkumar.ae.model.SKUInfo;
 import org.nkumar.ae.model.SKUSimilarity;
@@ -28,6 +29,9 @@ public final class Main
 
         SKUSimilarity similarity = Processor.buildSKUSimilarity(skuInfoList);
 
+        GenderShapeSKUsMap genderShapeSKUsMap
+                = GenderShapeSKUsMap.buildGenderShapeSKUsMap(skuInfoList, similarity);
+
         Map<String/*storeId*/, PrimaryStockAllocationRatio> psarMap = LoadProcessor
                 .loadPSAR(new File(root, "psar.csv"));
 
@@ -51,7 +55,7 @@ public final class Main
                         .thenComparingInt(StoreModel::getGrade).reversed())
                 .collect(Collectors.toList());
 
-        Engine engine = new Engine(whInventory, storeModels, similarity);
+        Engine engine = new Engine(whInventory, storeModels, genderShapeSKUsMap);
         List<StoreAllocation> allocate = engine.allocate();
         System.out.println("allocate = " + allocate);
     }

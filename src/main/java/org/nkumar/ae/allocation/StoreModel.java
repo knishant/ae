@@ -21,7 +21,7 @@ public final class StoreModel
     private final int totalGap;
 
     private final PrimaryStockAllocationRatio ratioGap;
-    private final Map<String, SKUInfo> skuInfoMap;
+    private final Map<String/*SKU*/, SKUInfo> skuInfoMap;
 
     public StoreModel(StoreInfo storeInfo, List<StoreInventoryInfo> inventoryInfoList,
             PrimaryStockAllocationRatio ratio, List<SKUInfo> skuInfoList)
@@ -69,5 +69,10 @@ public final class StoreModel
     public int getTotalGap()
     {
         return totalGap;
+    }
+
+    public PrimaryStockAllocationRatio getRatioGap()
+    {
+        return ratioGap;
     }
 }

@@ -19,6 +19,11 @@ public final class StoreAllocation
         allocations.compute(sku, (s, oldValue) -> oldValue == null? 1: oldValue + 1);
     }
 
+    public String getStoreId()
+    {
+        return storeId;
+    }
+
     @Override
     public String toString()
     {
