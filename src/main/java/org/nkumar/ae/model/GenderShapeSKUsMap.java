@@ -1,7 +1,6 @@
 package org.nkumar.ae.model;
 
 import java.util.Collections;
-import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -11,11 +10,11 @@ import java.util.stream.Collectors;
 
 public final class GenderShapeSKUsMap
 {
-    private final Map<Gender, Map<String/*shape*/, Set<String>/*SKU*/>> exactMap;
-    private final Map<Gender, Map<String/*shape*/, Set<String>/*SKU*/>> similarMap;
+    private final Map<GenderShape, Set<String>/*SKU*/> exactMap;
+    private final Map<GenderShape, Set<String>/*SKU*/> similarMap;
 
-    private GenderShapeSKUsMap(Map<Gender, Map<String, Set<String>>> exactMap,
-            Map<Gender, Map<String/*shape*/, Set<String>/*SKU*/>> similarMap)
+    private GenderShapeSKUsMap(Map<GenderShape, Set<String>> exactMap,
+            Map<GenderShape, Set<String>/*SKU*/> similarMap)
     {
         this.exactMap = exactMap;
         this.similarMap = similarMap;
@@ -25,24 +24,20 @@ public final class GenderShapeSKUsMap
             List<SKUInfo> skuInfos, SKUSimilarity skuSimilarity)
     {
         //compute exact sku mapping
-        Map<Gender, Map<String, Set<String>>> exactMap = new EnumMap<>(Gender.class);
+        Map<GenderShape, Set<String>> exactMap = new HashMap<>();
         skuInfos.forEach(info -> {
-            exactMap.computeIfAbsent(info.getGender(), gender -> new HashMap<>())
-                    .computeIfAbsent(info.getShape(), shape -> new HashSet<>()).add(info.getSKU());
+            GenderShape genderShape = new GenderShape(info.getGender(), info.getShape());
+            exactMap.computeIfAbsent(genderShape, key -> new HashSet<>()).add(info.getSKU());
         });
 
-        Map<Gender, Map<String, Set<String>>> similarMap = new EnumMap<>(Gender.class);
-        exactMap.forEach((gender, exactShapeSKUsMap) -> {
-            Map<String, Set<String>> similarShapeSKUsMap
-                    = similarMap.computeIfAbsent(gender, gen -> new HashMap<>());
-            exactShapeSKUsMap.keySet().forEach(shape -> {
-                Set<String> exactSKUsSet = exactShapeSKUsMap.get(shape);
+        Map<GenderShape, Set<String>> similarMap = new HashMap<>();
+        exactMap.keySet().forEach(genderShape -> {
+                Set<String> exactSKUsSet = exactMap.get(genderShape);
                 Set<String> similarSKUsSet = exactSKUsSet.stream()
                         .flatMap(sku -> skuSimilarity.getPartialMatches(sku).stream())
                         .collect(Collectors.toSet());
                 similarSKUsSet.removeAll(exactSKUsSet);
-                similarShapeSKUsMap.put(shape, similarSKUsSet);
-            });
+                similarMap.put(genderShape, similarSKUsSet);
         });
         return new GenderShapeSKUsMap(exactMap, similarMap);
     }
@@ -54,9 +49,8 @@ public final class GenderShapeSKUsMap
      */
     public Set<String> getSKUs(Gender gender, String shape, boolean exact)
     {
-        Map<Gender, Map<String, Set<String>>> map = exact ? exactMap : similarMap;
-        return Collections.unmodifiableSet(map.getOrDefault(gender, Collections.emptyMap())
-                .getOrDefault(shape, Collections.emptySet()));
+        Map<GenderShape,  Set<String>> map = exact ? exactMap : similarMap;
+        return Collections.unmodifiableSet(map.getOrDefault(new GenderShape(gender, shape), Collections.emptySet()));
     }
 
 }
