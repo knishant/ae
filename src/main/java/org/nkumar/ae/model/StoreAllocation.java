@@ -1,27 +1,28 @@
 package org.nkumar.ae.model;
 
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.Collections;
+import java.util.Set;
 
 public final class StoreAllocation
 {
     private final String storeId;
 
-    private final Map<String/*SKU*/, Integer> allocations = new TreeMap<>();
+    private final Set<String/*SKU*/> allocations;
 
-    public StoreAllocation(String storeId)
+    public StoreAllocation(String storeId, Set<String> allocations)
     {
         this.storeId = storeId;
-    }
-
-    public void allocate(String sku)
-    {
-        allocations.compute(sku, (s, oldValue) -> oldValue == null? 1: oldValue + 1);
+        this.allocations = Collections.unmodifiableSet(allocations);
     }
 
     public String getStoreId()
     {
         return storeId;
+    }
+
+    public Set<String> getAllocations()
+    {
+        return allocations;
     }
 
     @Override

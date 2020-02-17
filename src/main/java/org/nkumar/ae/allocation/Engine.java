@@ -1,65 +1,80 @@
 package org.nkumar.ae.allocation;
 
-import org.nkumar.ae.model.Gender;
-import org.nkumar.ae.model.GenderShapeSKUsMap;
-import org.nkumar.ae.model.PrimaryStockAllocationRatio;
 import org.nkumar.ae.model.StoreAllocation;
 import org.nkumar.ae.model.WarehouseInventoryInfo;
 
 import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public final class Engine
 {
     private final WarehouseInventoryInfo whInfo;
     private final List<StoreModel> storeModels;
-    private final GenderShapeSKUsMap genderShapeSKUsMap;
+    private final Statics statics;
 
     public Engine(WarehouseInventoryInfo whInfo, List<StoreModel> storeModels,
-             GenderShapeSKUsMap genderShapeSKUsMap)
+            Statics statics)
     {
         this.whInfo = whInfo;
         this.storeModels = storeModels;
-        this.genderShapeSKUsMap = genderShapeSKUsMap;
+        this.statics = statics;
     }
 
     public List<StoreAllocation> allocate()
     {
-        List<StoreAllocation> list = storeModels.stream().map(m -> new StoreAllocation(m.getStoreId()))
-                .collect(Collectors.toList());
-        Map<String, StoreAllocation> allocations = list.stream()
-                .collect(Collectors.toMap(StoreAllocation::getStoreId, Function.identity()));
         for (StoreModel storeModel : storeModels)
         {
-            PrimaryStockAllocationRatio gap = storeModel.getRatioGap();
-            StoreAllocation storeAllocation = allocations.get(storeModel.getStoreId());
-            gap.allocateForEach((gender, shape, count) ->
-                    allocateFor(gender, shape, count, true, storeAllocation));
-            gap.allocateForEach((gender, shape, count) ->
-                    allocateFor(gender, shape, count, false, storeAllocation));
+            storeModel.getSkusToAllocate().removeIf(skuToAllocate -> allocateSKUMatch(skuToAllocate, storeModel));
         }
-        return list;
+        for (StoreModel storeModel : storeModels)
+        {
+            storeModel.getSkusToAllocate().removeIf(skuToAllocate -> allocateExactMatch(skuToAllocate, storeModel));
+        }
+        for (StoreModel storeModel : storeModels)
+        {
+            storeModel.getSkusToAllocate().removeIf(skuToAllocate -> allocatePartialMatch(skuToAllocate, storeModel));
+        }
+        return storeModels.stream()
+                .map(model -> new StoreAllocation(model.getStoreId(), model.getSkusAllocated()))
+                .collect(Collectors.toList());
     }
 
-    private int allocateFor(Gender gender, String shape, int count, boolean exact,
-            StoreAllocation storeAllocation)
+    private boolean allocateSKUMatch(String sku, StoreModel storeModel)
     {
-        if (count <= 0)
-            return 0;
-        List<String> skUs = genderShapeSKUsMap.getSKUs(gender, shape, exact).stream()
-                //filer out skus for which there is no inventory
-                .filter(sku -> whInfo.getAvailableInventory(sku) > 0)
-                .collect(Collectors.toList());
-        //allocating each sku only once
-        int allocationCount = Math.min(count, skUs.size());
-        for (int i = 0; i < allocationCount; i++)
+        if (!storeModel.canBeAllocated(sku, statics) || !whInfo.hasAvailableInventory(sku))
         {
-            String allocatedSKU = skUs.get(i);
-            storeAllocation.allocate(allocatedSKU);
-            whInfo.decrementInventory(allocatedSKU, 1);
+            return false;
         }
-        return allocationCount;
+        storeModel.allocate(statics.getSkuInfo(sku));
+        whInfo.decrementInventory(sku);
+        return true;
+    }
+
+    //sku for which sku match did not work
+    private boolean allocateExactMatch(String sku, StoreModel storeModel)
+    {
+        List<String> list = statics.getExactMatchSkus(sku);
+        list = storeModel.canBeAllocated(list, statics);
+        Optional<String> maxSku = whInfo.getOneWithMaxStock(list);
+        return allocateSku(maxSku, storeModel);
+    }
+
+    private boolean allocateSku(Optional<String> sku, StoreModel storeModel)
+    {
+        sku.ifPresent(allocatedSku -> {
+            storeModel.allocate(statics.getSkuInfo(allocatedSku));
+            whInfo.decrementInventory(allocatedSku);
+        });
+        return sku.isPresent();
+    }
+
+    //sku for which exact sku match did not work
+    private boolean allocatePartialMatch(String sku, StoreModel storeModel)
+    {
+        List<String> list = statics.getPartialMatchSkus(sku);
+        list = storeModel.canBeAllocated(list, statics);
+        Optional<String> firstSku = whInfo.getFirstWithAnyStock(list);
+        return allocateSku(firstSku, storeModel);
     }
 }

@@ -1,6 +1,11 @@
-package org.nkumar.ae.model;
+package org.nkumar.ae.allocation;
+
+import org.nkumar.ae.model.SKUInfo;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -10,47 +15,53 @@ import java.util.stream.Collectors;
 
 public final class SKUSimilarity
 {
-    private final Map<String, List<Set<String>>> map;
+    private final Map<String, List<String>> exactMatchMap;
+    private final Map<String, List<String>> partialMatchMap;
 
-    private SKUSimilarity(Map<String, List<Set<String>>> map)
+    private SKUSimilarity(Map<String, List<String>> exactMatchMap,
+            Map<String, List<String>> partialMatchMap)
     {
-        this.map = map;
+        this.exactMatchMap = exactMatchMap;
+        this.partialMatchMap = partialMatchMap;
     }
 
     /**
-     * Return the set of skus which are exact match of the passed sku.
+     * Return the list of skus which are exact match of the passed sku.
      * Result can be modified without impacting the internal data structure.
+     *
      * @param sku
      * @return exact match set
      */
-    public Set<String> getExactMatches(String sku)
+    List<String> getExactMatches(String sku)
     {
-        return new TreeSet<>(map.get(sku).get(0));
+        return new ArrayList<>(exactMatchMap.getOrDefault(sku, Collections.emptyList()));
     }
 
     /**
-     * Return the set of skus which are partial match of the passed sku.
+     * Return the list of skus which are partial match of the passed sku. At-max one difference.
+     * skus with difference in lower priority attribute will be earlier in the list.
      * Result can be modified without impacting the internal data structure.
+     *
      * @param sku
      * @return partial match set
      */
-    public Set<String> getPartialMatches(String sku)
+    List<String> getPartialMatches(String sku)
     {
-        return new TreeSet<>(map.get(sku).get(1));
+        return new ArrayList<>(partialMatchMap.getOrDefault(sku, Collections.emptyList()));
     }
 
     private static class Builder
     {
-        private final Map<String, List<Set<String>>> map;
+        private final Map<String, List<String>> exactMatchMap;
+        private final Map<String, Map<String, Integer>> partialMatchMap;
 
         private Builder(Set<String> skus)
         {
-            this.map = new TreeMap<>();
+            this.exactMatchMap = new TreeMap<>();
+            this.partialMatchMap = new TreeMap<>();
             skus.forEach(sku -> {
-                List<Set<String>> list = new ArrayList<>();
-                list.add(new TreeSet<>());
-                list.add(new TreeSet<>());
-                map.put(sku, list);
+                exactMatchMap.put(sku, new ArrayList<>());
+                partialMatchMap.put(sku, new HashMap<>());
             });
         }
 
@@ -61,42 +72,41 @@ public final class SKUSimilarity
 
         private void addExactMatch(String sku1, String sku2)
         {
-            addMatch(0, sku1, sku2);
+            this.exactMatchMap.get(sku1).add(sku2);
+            this.exactMatchMap.get(sku2).add(sku1);
         }
 
-        private void addPartialMatch(String sku1, String sku2)
+        private void addPartialMatch(String sku1, String sku2, int rank)
         {
-            addMatch(1, sku1, sku2);
-        }
-
-        private void addMatch(int index, String sku1, String sku2)
-        {
-            this.map.get(sku1).get(index).add(sku2);
-            this.map.get(sku2).get(index).add(sku1);
+            this.partialMatchMap.get(sku1).put(sku2, rank);
+            this.partialMatchMap.get(sku2).put(sku1, rank);
         }
 
         private SKUSimilarity build()
         {
-            return new SKUSimilarity(map);
+            Map<String, List<String>> sortedPartialMatchMap = new HashMap<>();
+            partialMatchMap.forEach((sku, pMap) -> {
+                List<String> partialMatchingList = pMap.entrySet().stream()
+                        .sorted(Comparator.comparingInt(Map.Entry::getValue))
+                        .map(Map.Entry::getKey)
+                        .collect(Collectors.toList());
+                sortedPartialMatchMap.put(sku, partialMatchingList);
+            });
+            return new SKUSimilarity(exactMatchMap, sortedPartialMatchMap);
         }
     }
 
-    public static SKUSimilarity buildSKUSimilarity(List<SKUInfo> skuInfos)
+    public static SKUSimilarity buildSKUSimilarity(Map<String, SKUInfo> skuInfoMap)
     {
-        Map<String, SKUInfo> skuInfoMap = skuInfos.stream().collect(Collectors.toMap(SKUInfo::getSKU, info -> info));
         //treeset is important as sorted semantics is used later
         Set<String> skus = new TreeSet<>(skuInfoMap.keySet());
-        if (skus.size() != skuInfos.size())
-        {
-            throw new IllegalArgumentException("Duplicate skus passed in the list");
-        }
         SKUSimilarity.Builder builder = SKUSimilarity.Builder.create(skus);
         for (String sku1 : skus)
         {
             for (String sku2 : skus)
             {
                 //this is just to iterate over lower half of the matrix
-                if (sku1.compareTo(sku2) >= 0)
+                if (sku1.compareTo(sku2) > 0)
                 {
                     break;
                 }
@@ -109,7 +119,7 @@ public final class SKUSimilarity
                 }
                 else if (match > 0)
                 {
-                    builder.addPartialMatch(sku1, sku2);
+                    builder.addPartialMatch(sku1, sku2, match);
                 }
             }
         }
@@ -134,6 +144,7 @@ public final class SKUSimilarity
         {
             return -1;
         }
+        int rank = 0;
         int dissimilarity = 0;
         {
             //one level of price diff allowed
@@ -141,8 +152,36 @@ public final class SKUSimilarity
             if (priceRangeDiff == 1)
             {
                 dissimilarity++;
+                rank = 1;
             }
             else if (priceRangeDiff > 1)
+            {
+                return -1;
+            }
+        }
+        {
+            if (!info1.getLensFeature().equals(info2.getLensFeature()))
+            {
+                dissimilarity++;
+                rank = 2;
+            }
+        }
+        {
+            if (!info1.getFrameFinish().equals(info2.getFrameFinish()))
+            {
+                dissimilarity++;
+                rank = 3;
+            }
+        }
+        {
+            //one level of size difference is allowed
+            int sizeDiff = Math.abs(info1.getSize().getValue() - info2.getSize().getValue());
+            if (sizeDiff == 1)
+            {
+                dissimilarity++;
+                rank = 4;
+            }
+            else if (sizeDiff > 1)
             {
                 return -1;
             }
@@ -153,36 +192,22 @@ public final class SKUSimilarity
             if (genderDiff == 1)
             {
                 dissimilarity++;
+                rank = 100;
             }
             else if (genderDiff > 1)
             {
                 return -1;
             }
         }
+        if (dissimilarity == 0)
         {
-            //one level of size difference is allowed
-            int sizeDiff = Math.abs(info1.getSize().getValue() - info2.getSize().getValue());
-            if (sizeDiff == 1)
-            {
-                dissimilarity++;
-            }
-            else if (sizeDiff > 1)
-            {
-                return -1;
-            }
+            return 0;
         }
+        else if (dissimilarity > 1)
         {
-            if (!info1.getFrameFinish().equals(info2.getFrameFinish()))
-            {
-                dissimilarity++;
-            }
+            //only one difference allowed
+            return -1;
         }
-        {
-            if (!info1.getLensFeature().equals(info2.getLensFeature()))
-            {
-                dissimilarity++;
-            }
-        }
-        return dissimilarity;
+        return rank;
     }
 }

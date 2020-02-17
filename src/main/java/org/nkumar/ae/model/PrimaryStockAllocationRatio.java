@@ -29,6 +29,10 @@ public final class PrimaryStockAllocationRatio
     {
     }
 
+    public boolean needsAllocation(GenderShape gs){
+        return map.getOrDefault(gs, 0) > 0;
+    }
+
     public PrimaryStockAllocationRatio(PrimaryStockAllocationRatio ratio)
     {
         //just clone the values
@@ -38,10 +42,13 @@ public final class PrimaryStockAllocationRatio
     public void allocateForEach(Allocator allocator)
     {
         map.forEach((genderShape, count) -> {
-            int allocate = allocator.allocate(genderShape.getGender(), genderShape.getShape(), count);
-            if (allocate > 0)
+            if (count > 0)
             {
-                decrementQuantity(genderShape.getGender(), genderShape.getShape(), allocate);
+                int allocate = allocator.allocate(genderShape.getGender(), genderShape.getShape(), count);
+                if (allocate > 0)
+                {
+                    decrementQuantity(genderShape.getGender(), genderShape.getShape(), allocate);
+                }
             }
         });
     }
@@ -53,6 +60,7 @@ public final class PrimaryStockAllocationRatio
          * Try to allocate at most count items for the passed gender and shape.
          * The count could be negative, in which case the gender and shape is already over allocated.
          * Return the number that was actually allocate.
+         *
          * @return count that could be allocated
          */
         int allocate(Gender gender, String shape, int count);
