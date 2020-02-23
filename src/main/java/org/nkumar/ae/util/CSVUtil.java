@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -33,10 +34,16 @@ public final class CSVUtil
                     .withType(type)
                     .withIgnoreLeadingWhiteSpace(true)
                     .build();
-            List<T> parse = csvToBean.parse();
-            return parse.stream()
-                    .filter(distinctByKey(path.getName()))
+            AtomicInteger ignoreCount = new AtomicInteger(0);
+            List<T> list = csvToBean.parse().stream()
+                    .filter(distinctByKey(path.getName(), ignoreCount))
                     .collect(Collectors.toList());
+            if (ignoreCount.get() > 0)
+            {
+                LOG.log(Level.WARNING, "Ignored {1} duplicate keys while parsing {0}",
+                        new Object[]{path, ignoreCount.get()});
+            }
+            return list;
         }
         catch (IOException e)
         {
@@ -44,7 +51,7 @@ public final class CSVUtil
         }
     }
 
-    private static <T extends Keyed> Predicate<T> distinctByKey(String path)
+    private static <T extends Keyed> Predicate<T> distinctByKey(String path, AtomicInteger ignoreCount)
     {
         Map<Object, Boolean> seen = new HashMap<>();
         return t -> {
@@ -52,6 +59,7 @@ public final class CSVUtil
             boolean nonExistent = seen.putIfAbsent(key, Boolean.TRUE) == null;
             if (!nonExistent)
             {
+                ignoreCount.incrementAndGet();
                 LOG.log(Level.WARNING, "Ignoring duplicate key while parsing {0} : {1}", new Object[]{path, key});
             }
             return nonExistent;

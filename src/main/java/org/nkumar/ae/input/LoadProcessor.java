@@ -14,41 +14,132 @@ import org.nkumar.ae.model.WarehouseInventoryInfo;
 import org.nkumar.ae.util.CSVUtil;
 
 import java.io.File;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import static org.nkumar.ae.util.StringUtil.codify;
 
 public final class LoadProcessor
 {
+    private static final Logger LOG = Logger.getLogger(LoadProcessor.class.getName());
+
     private LoadProcessor()
     {
     }
 
-    public static Map<String/*storeId*/, PrimaryStockAllocationRatio> loadPSAR(File path)
+    public static Map<String/*storeId*/, PrimaryStockAllocationRatio> loadPSAR(File path, Set<String> validStoreIds)
     {
         Map<String, PrimaryStockAllocationRatio> map = new TreeMap<>();
-        CSVUtil.loadCSV(path, PSARRow.class).forEach(row -> {
-            PrimaryStockAllocationRatio ratio = map
-                    .computeIfAbsent(row.getStoreId(), storeId -> new PrimaryStockAllocationRatio());
-            ratio.setQuantity(row.getGender(), row.getShape(), row.getQuantity());
-        });
+        CountingInvalidPredicate<PSARRow> validKeyPredicate = new CountingInvalidPredicate<>(
+                validStoreIds, PSARRow::getStoreId,
+                "Ignoring store in psar as it is not defined in storeinfo : {0}");
+        CSVUtil.loadCSV(path, PSARRow.class).stream()
+                .filter(validKeyPredicate)
+                .forEach(row -> {
+                    PrimaryStockAllocationRatio ratio = map
+                            .computeIfAbsent(row.getStoreId(), storeId -> new PrimaryStockAllocationRatio());
+                    ratio.setQuantity(row.getGender(), row.getShape(), row.getQuantity());
+                });
+        validKeyPredicate.logIfCountNonZero("Ignored {0} stores in psar as they are not defined in storeinfo");
+
+        //fill empty PSAR for stores which it has not been set
+        Set<String> notConfiguredStores = new HashSet<>(validStoreIds);
+        notConfiguredStores.removeAll(map.keySet());
+        if (!notConfiguredStores.isEmpty())
+        {
+            LOG.log(Level.INFO, "Adding empty PSAR for {0} stores as they were condigured in psar",
+                    notConfiguredStores.size());
+            notConfiguredStores.forEach( storeId ->
+            {
+                LOG.log(Level.INFO, "Adding dummy PSAR for store {0}", storeId);
+                map.put(storeId, new PrimaryStockAllocationRatio());
+            });
+        }
         return map;
     }
 
-    public static WarehouseInventoryInfo loadWarehouseInventoryInfo(File path)
+    private static final class CountingInvalidPredicate<T> implements Predicate<T>
     {
+        private final AtomicInteger count = new AtomicInteger(0);
+
+        private final Set<String> validIds;
+        private final Function<T, String> keyExtractor;
+        private final String msg;
+
+        public CountingInvalidPredicate(Set<String> validIds, Function<T, String> keyExtractor, String msg)
+        {
+            this.validIds = validIds;
+            this.keyExtractor = keyExtractor;
+            this.msg = msg;
+        }
+
+        @Override
+        public boolean test(T t)
+        {
+            String key = keyExtractor.apply(t);
+            boolean contains = validIds.contains(key);
+            if (!contains)
+            {
+                count.incrementAndGet();
+                LOG.log(Level.WARNING, msg, key);
+            }
+            return contains;
+        }
+
+        public void logIfCountNonZero(String msg)
+        {
+            if (count.get() > 0)
+            {
+                LOG.log(Level.WARNING, msg, count.get());
+            }
+        }
+    }
+
+
+    public static WarehouseInventoryInfo loadWarehouseInventoryInfo(File path, Set<String> validSKUs)
+    {
+        CountingInvalidPredicate<WarehouseInventoryRow> validKeyPredicate = new CountingInvalidPredicate<>(
+                validSKUs, WarehouseInventoryRow::getSKU,
+                "Ignoring sku in warehouse inventory as it is not defined in skuinfo : {0}");
         Map<String, Integer> map = CSVUtil.loadCSV(path, WarehouseInventoryRow.class).stream()
+                .filter(validKeyPredicate)
                 .collect(Collectors.toMap(WarehouseInventoryRow::getSKU, WarehouseInventoryRow::getAvailable));
+        validKeyPredicate.logIfCountNonZero(
+                "Ignored {0} skus in warehouse inventory as they are not defined in skuinfo");
         return new WarehouseInventoryInfo(map);
     }
 
-    public static Map<String/*storeId*/, List<StoreInventoryInfo>> loadStoreInventoryInfo(File path)
+    public static Map<String/*storeId*/, List<StoreInventoryInfo>> loadStoreInventoryInfo(File path,
+            Set<String> validStoreIds, Set<String> validSKUs)
     {
-        return CSVUtil.loadCSV(path, StoreInventoryInfo.class).stream()
+        CountingInvalidPredicate<StoreInventoryInfo> validKeyPredicate1 = new CountingInvalidPredicate<>(
+                validStoreIds, StoreInventoryInfo::getStoreId,
+                "Ignoring store in store inventory as it is not defined in storeinfo : {0}");
+
+        CountingInvalidPredicate<StoreInventoryInfo> validKeyPredicate2 = new CountingInvalidPredicate<>(
+                validSKUs, StoreInventoryInfo::getSKU,
+                "Ignoring sku in store inventory as it is not defined in skuinfo : {0}");
+
+        Map<String, List<StoreInventoryInfo>> collect = CSVUtil.loadCSV(path, StoreInventoryInfo.class).stream()
+                .filter(validKeyPredicate1)
+                .filter(validKeyPredicate2)
                 .collect(Collectors.groupingBy(StoreInventoryInfo::getStoreId));
+
+        validKeyPredicate1.logIfCountNonZero(
+                "Ignored {0} stores in store inventory as they are not defined in storeinfo");
+
+        validKeyPredicate2.logIfCountNonZero(
+                "Ignored {0} skus in store inventory as they are not defined in skuinfo");
+        return collect;
     }
 
     public static List<StoreInfo> loadStoreInfo(File path)
@@ -115,7 +206,7 @@ public final class LoadProcessor
         @Override
         public String getKey()
         {
-            return String.join(",",getStoreId(), getGender().toString(), getShape());
+            return String.join(",", getStoreId(), getGender().toString(), getShape());
         }
     }
 

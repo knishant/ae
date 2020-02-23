@@ -27,22 +27,24 @@ public final class Main
         System.out.println("root.getAbsolutePath() = " + root.getAbsolutePath());
         //load static info about all the skus
         List<SKUInfo> skuInfoList = LoadProcessor.loadSKU(new File(root, "skuinfo.csv"));
-        Statics statics = new Statics(skuInfoList);
-
-        //load primary stock allocation ratio for each store
-        Map<String/*storeId*/, PrimaryStockAllocationRatio> psarMap = LoadProcessor
-                .loadPSAR(new File(root, "psar.csv"));
-
-        //load warehouse inventory details
-        WarehouseInventoryInfo whInventory = LoadProcessor
-                .loadWarehouseInventoryInfo(new File(root, "warehouseInventory.csv"));
-
-        //load inventory details of the store, including what was sold in the previous cycle
-        Map<String/*storeId*/, List<StoreInventoryInfo>> storeInventoryInfoMap = LoadProcessor
-                .loadStoreInventoryInfo(new File(root, "storeInventory.csv"));
 
         //load static information about each store.
         List<StoreInfo> storeInfoList = LoadProcessor.loadStoreInfo(new File(root, "storeInfo.csv"));
+
+        Statics statics = new Statics(skuInfoList, storeInfoList);
+
+        //load primary stock allocation ratio for each store
+        Map<String/*storeId*/, PrimaryStockAllocationRatio> psarMap = LoadProcessor
+                .loadPSAR(new File(root, "psar.csv"), statics.getValidStoreIds());
+
+        //load warehouse inventory details
+        WarehouseInventoryInfo whInventory = LoadProcessor
+                .loadWarehouseInventoryInfo(new File(root, "warehouseInventory.csv"), statics.getValidSKUs());
+
+        //load inventory details of the store, including what was sold in the previous cycle
+        Map<String/*storeId*/, List<StoreInventoryInfo>> storeInventoryInfoMap = LoadProcessor
+                .loadStoreInventoryInfo(new File(root, "storeInventory.csv"),
+                        statics.getValidStoreIds(), statics.getValidSKUs());
 
         List<StoreModel> storeModels = storeInfoList.stream()
                 .map(storeInfo -> {
@@ -60,6 +62,8 @@ public final class Main
 
         Engine engine = new Engine(whInventory, storeModels, statics);
         List<StoreAllocation> allocate = engine.allocate();
-        System.out.println("allocate = " + allocate);
+        allocate.forEach(storeAllocation -> {
+            System.out.println(storeAllocation);
+        });
     }
 }
