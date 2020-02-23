@@ -50,20 +50,6 @@ public final class LoadProcessor
                     ratio.setQuantity(row.getGender(), row.getShape(), row.getQuantity());
                 });
         validKeyPredicate.logIfCountNonZero("Ignored {0} stores in psar as they are not defined in storeinfo");
-
-        //fill empty PSAR for stores which it has not been set
-        Set<String> notConfiguredStores = new HashSet<>(validStoreIds);
-        notConfiguredStores.removeAll(map.keySet());
-        if (!notConfiguredStores.isEmpty())
-        {
-            LOG.log(Level.INFO, "Adding empty PSAR for {0} stores as they were condigured in psar",
-                    notConfiguredStores.size());
-            notConfiguredStores.forEach( storeId ->
-            {
-                LOG.log(Level.INFO, "Adding dummy PSAR for store {0}", storeId);
-                map.put(storeId, new PrimaryStockAllocationRatio());
-            });
-        }
         return map;
     }
 

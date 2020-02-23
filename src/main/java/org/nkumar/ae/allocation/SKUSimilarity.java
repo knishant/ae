@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public final class SKUSimilarity
@@ -92,8 +93,17 @@ public final class SKUSimilarity
                         .collect(Collectors.toList());
                 sortedPartialMatchMap.put(sku, partialMatchingList);
             });
-            return new SKUSimilarity(exactMatchMap, sortedPartialMatchMap);
+
+            Predicate<Map.Entry<String, List<String>>> nonEmptyValue = map -> !map.getValue().isEmpty();
+            return new SKUSimilarity(filterMap(this.exactMatchMap, nonEmptyValue),
+                    filterMap(sortedPartialMatchMap, nonEmptyValue));
         }
+    }
+
+    private static <K,V> Map<K,V> filterMap(Map<K,V> map, Predicate<? super Map.Entry<K,V>> predicate)
+    {
+        return map.entrySet().stream().filter(predicate)
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
     public static SKUSimilarity buildSKUSimilarity(Map<String, SKUInfo> skuInfoMap)
@@ -106,13 +116,14 @@ public final class SKUSimilarity
             for (String sku2 : skus)
             {
                 //this is just to iterate over lower half of the matrix
-                if (sku1.compareTo(sku2) > 0)
+                if (sku1.compareTo(sku2) <= 0)
                 {
                     break;
                 }
                 SKUInfo sku1Info = skuInfoMap.get(sku1);
                 SKUInfo sku2Info = skuInfoMap.get(sku2);
                 int match = match(sku1Info, sku2Info);
+//                System.out.println("sku1 " + sku1 + " sku2 " + sku2 + " match " + match);
                 if (match == 0)
                 {
                     builder.addExactMatch(sku1, sku2);

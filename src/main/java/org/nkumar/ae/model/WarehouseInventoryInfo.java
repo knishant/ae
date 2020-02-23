@@ -10,9 +10,22 @@ public final class WarehouseInventoryInfo
 {
     private final Map<String/*SKU*/, Integer> map;
 
+    private final int initialTotalInventory;
+
     public WarehouseInventoryInfo(Map<String, Integer> input)
     {
         this.map = new TreeMap<>(input);
+        this.initialTotalInventory = getTotalInventory();
+    }
+
+    public int getInitialTotalInventory()
+    {
+        return initialTotalInventory;
+    }
+
+    public int getTotalInventory()
+    {
+        return map.values().stream().mapToInt(Integer::intValue).sum();
     }
 
     public boolean hasAvailableInventory(String sku)
