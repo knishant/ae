@@ -23,7 +23,8 @@ public final class Main
     public static void main(String[] args)
     {
         int moq = 10;
-        File root = new File("sample");
+        File root = new File("tmp/sample");
+        System.out.println("root.getAbsolutePath() = " + root.getAbsolutePath());
         //load static info about all the skus
         List<SKUInfo> skuInfoList = LoadProcessor.loadSKU(new File(root, "skuinfo.csv"));
         Statics statics = new Statics(skuInfoList);
@@ -54,10 +55,8 @@ public final class Main
                 .filter(s -> s.getTotalGap() >= moq)
                 .sorted(Comparator.comparingInt(StoreModel::getSale)
                         .thenComparingInt(StoreModel::getTotalGap)
-                        .thenComparingInt(StoreModel::getGrade).reversed())
+                        .thenComparingInt(StoreModel::getGrade))
                 .collect(Collectors.toList());
-
-        //TODO reversed in grade above may not be correct
 
         Engine engine = new Engine(whInventory, storeModels, statics);
         List<StoreAllocation> allocate = engine.allocate();

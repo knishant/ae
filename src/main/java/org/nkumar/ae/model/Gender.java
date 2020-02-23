@@ -2,7 +2,7 @@ package org.nkumar.ae.model;
 
 public enum Gender
 {
-    MAN(1), UNISEX(2), WOMAN(3);
+    MEN(1), UNISEX(2), WOMEN(3);
     private final int value;
 
     Gender(int value)

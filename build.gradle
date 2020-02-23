@@ -15,3 +15,10 @@ dependencies {
     compile 'com.opencsv:opencsv:5.0'
     testCompile 'junit:junit:4.12'
 }
+
+task runSample(type: JavaExec) {
+    classpath = sourceSets.main.runtimeClasspath
+    main = 'org.nkumar.ae.Main'
+    // arguments to pass to the application
+//    args 'appArg1'
+}

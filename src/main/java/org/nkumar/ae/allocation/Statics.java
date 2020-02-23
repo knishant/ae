@@ -6,7 +6,6 @@ import org.nkumar.ae.model.SKUInfo;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -20,10 +19,6 @@ public final class Statics
     {
         this.skuInfoMap = skuInfoList.stream()
                 .collect(Collectors.toMap(SKUInfo::getSKU, Function.identity()));
-        if (skuInfoMap.size() != skuInfoList.size())
-        {
-            throw new IllegalArgumentException("Duplicate skus passed in the list");
-        }
         this.similarity = SKUSimilarity.buildSKUSimilarity(skuInfoMap);
     }
 

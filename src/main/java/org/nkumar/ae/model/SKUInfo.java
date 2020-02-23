@@ -7,7 +7,7 @@ import org.nkumar.ae.converter.GenderBeanField;
 import org.nkumar.ae.converter.MaterialBeanField;
 import org.nkumar.ae.converter.SizeBeanField;
 
-public final class SKUInfo
+public final class SKUInfo implements Keyed
 {
     @CsvBindByName
     private  String SKU;
@@ -152,6 +152,12 @@ public final class SKUInfo
     public void setPriceRange(int priceRange)
     {
         this.priceRange = priceRange;
+    }
+
+    @Override
+    public String getKey()
+    {
+        return getSKU();
     }
 
     @Override

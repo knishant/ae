@@ -1,15 +1,18 @@
 package org.nkumar.ae.model;
 
 import com.opencsv.bean.CsvBindByName;
+import com.opencsv.bean.CsvCustomBindByName;
 
-public final class StoreInfo
+import org.nkumar.ae.converter.GradeBeanField;
+
+public final class StoreInfo implements Keyed
 {
     @CsvBindByName
     private String storeId;
     @CsvBindByName
     private String name;
     //higher value is higher grade
-    @CsvBindByName
+    @CsvCustomBindByName(converter= GradeBeanField.class)
     private int grade;
 
     public String getStoreId()
@@ -40,5 +43,11 @@ public final class StoreInfo
     public void setGrade(int grade)
     {
         this.grade = grade;
+    }
+
+    @Override
+    public String getKey()
+    {
+        return getStoreId();
     }
 }

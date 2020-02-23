@@ -3,7 +3,7 @@ import com.opencsv.bean.CsvBindByName;
 
 import static org.nkumar.ae.util.StringUtil.codify;
 
-public class StoreInventoryInfo
+public class StoreInventoryInfo implements Keyed
 {
     @CsvBindByName
     private String storeId;
@@ -64,5 +64,11 @@ public class StoreInventoryInfo
     public void setAge(int age)
     {
         this.age = age;
+    }
+
+    @Override
+    public String getKey()
+    {
+        return String.join(",", getStoreId(), getSKU());
     }
 }

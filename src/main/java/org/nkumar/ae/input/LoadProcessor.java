@@ -5,6 +5,7 @@ import com.opencsv.bean.CsvCustomBindByName;
 
 import org.nkumar.ae.converter.GenderBeanField;
 import org.nkumar.ae.model.Gender;
+import org.nkumar.ae.model.Keyed;
 import org.nkumar.ae.model.PrimaryStockAllocationRatio;
 import org.nkumar.ae.model.SKUInfo;
 import org.nkumar.ae.model.StoreInfo;
@@ -60,7 +61,7 @@ public final class LoadProcessor
         return CSVUtil.loadCSV(path, SKUInfo.class);
     }
 
-    private static final class PSARRow
+    public static final class PSARRow implements Keyed
     {
         @CsvBindByName
         private String storeId;
@@ -110,9 +111,15 @@ public final class LoadProcessor
         {
             this.quantity = quantity;
         }
+
+        @Override
+        public String getKey()
+        {
+            return String.join(",",getStoreId(), getGender().toString(), getShape());
+        }
     }
 
-    private static final class WarehouseInventoryRow
+    public static final class WarehouseInventoryRow implements Keyed
     {
         @CsvBindByName
         private String SKU;
@@ -137,6 +144,12 @@ public final class LoadProcessor
         public void setAvailable(int available)
         {
             this.available = available;
+        }
+
+        @Override
+        public String getKey()
+        {
+            return getSKU();
         }
     }
 

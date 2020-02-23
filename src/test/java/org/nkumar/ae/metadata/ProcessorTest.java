@@ -21,7 +21,7 @@ public final class ProcessorTest
         assertEquals(1, skuInfos.size());
         SKUInfo info = skuInfos.get(0);
         assertEquals("SKU-1", info.getSKU());
-        assertEquals(Gender.MAN, info.getGender());
+        assertEquals(Gender.MEN, info.getGender());
         assertEquals(Material.METAL, info.getMaterial());
         assertEquals("Aviator", info.getShape());
         assertEquals(Size.SMALL, info.getSize());
