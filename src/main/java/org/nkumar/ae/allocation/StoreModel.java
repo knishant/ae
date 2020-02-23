@@ -7,6 +7,7 @@ import org.nkumar.ae.model.StoreInfo;
 import org.nkumar.ae.model.StoreInventoryInfo;
 
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -25,7 +26,7 @@ public final class StoreModel
 
     private final Set<String> skusToAllocate = new HashSet<>();
     private final Set<String> skusInStore = new HashSet<>();
-    private final Set<String> skusAllocated = new HashSet<>();
+    private final Map<String, String> skusAllocated = new LinkedHashMap<>();
 
     private final PrimaryStockAllocationRatio ratioGap;
 
@@ -91,7 +92,7 @@ public final class StoreModel
         return skusToAllocate;
     }
 
-    public Set<String> getSkusAllocated()
+    public Map<String, String> getSkusAllocated()
     {
         return skusAllocated;
     }
@@ -101,9 +102,9 @@ public final class StoreModel
         return ratioGap;
     }
 
-    public void allocate(SKUInfo skuInfo)
+    public void allocate(SKUInfo skuInfo, String reason)
     {
-        skusAllocated.add(skuInfo.getSKU());
+        skusAllocated.put(skuInfo.getSKU(), reason);
         ratioGap.decrementQuantity(skuInfo.getGender(), skuInfo.getShape(), 1);
     }
 
@@ -120,6 +121,6 @@ public final class StoreModel
     public boolean canBeAllocated(String sku, Statics statics)
     {
         GenderShape gs = statics.getGenderShapeForSKU(sku);
-        return !skusAllocated.contains(sku) && !skusInStore.contains(sku) && this.getRatioGap().needsAllocation(gs);
+        return !skusAllocated.containsKey(sku) && !skusInStore.contains(sku) && this.getRatioGap().needsAllocation(gs);
     }
 }

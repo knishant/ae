@@ -10,6 +10,7 @@ import org.nkumar.ae.model.StoreAllocation;
 import org.nkumar.ae.model.StoreInfo;
 import org.nkumar.ae.model.StoreInventoryInfo;
 import org.nkumar.ae.model.WarehouseInventoryInfo;
+import org.nkumar.ae.output.StoreProcessor;
 
 import java.io.File;
 import java.util.Comparator;
@@ -80,14 +81,20 @@ public final class Main
                 storeModels.size());
 
 //        storeModels.forEach(s -> {
-//            System.out.println(s.getStoreId() + " -> sale=" + s.getSale() + ", gap=" + s.getTotalGap() + ", grade=" + s.getGrade());
+//            System.out.println(s.getStoreId() + " -> toAllocate=" + s.getSkusToAllocate().size()
+//                    + ", sale=" + s.getSale() + ", gap=" + s.getTotalGap() + ", grade=" + s.getGrade());
 //        });
+
+        int totalSkusToAllocate = storeModels.stream().mapToInt(s -> s.getSkusToAllocate().size()).sum();
+        System.out.println("totalSkusToAllocate = " + totalSkusToAllocate);
 
         Engine engine = new Engine(whInventory, storeModels, statics);
         List<StoreAllocation> allocate = engine.allocate();
-        allocate.forEach(storeAllocation -> {
-            System.out.println(storeAllocation);
-        });
+//        allocate.forEach(storeAllocation -> {
+//            System.out.println(storeAllocation);
+//        });
+
+        StoreProcessor.storeAllocations(new File(root, "allocations.csv"), allocate);
 
         System.out.println("Allocated " + (whInventory.getInitialTotalInventory() - whInventory.getTotalInventory())
                 + " from " + whInventory.getInitialTotalInventory() + " items");

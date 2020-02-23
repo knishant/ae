@@ -1,18 +1,18 @@
 package org.nkumar.ae.model;
 
 import java.util.Collections;
-import java.util.Set;
+import java.util.Map;
 
 public final class StoreAllocation
 {
     private final String storeId;
 
-    private final Set<String/*SKU*/> allocations;
+    private final Map<String/*SKU*/, String/*reason*/> allocations;
 
-    public StoreAllocation(String storeId, Set<String> allocations)
+    public StoreAllocation(String storeId, Map<String, String> allocations)
     {
         this.storeId = storeId;
-        this.allocations = Collections.unmodifiableSet(allocations);
+        this.allocations = Collections.unmodifiableMap(allocations);
     }
 
     public String getStoreId()
@@ -20,7 +20,7 @@ public final class StoreAllocation
         return storeId;
     }
 
-    public Set<String> getAllocations()
+    public Map<String, String> getAllocations()
     {
         return allocations;
     }
