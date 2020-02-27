@@ -29,7 +29,8 @@ public final class PrimaryStockAllocationRatio
     {
     }
 
-    public boolean needsAllocation(GenderShape gs){
+    public boolean needsAllocation(GenderShape gs)
+    {
         return map.getOrDefault(gs, 0) > 0;
     }
 

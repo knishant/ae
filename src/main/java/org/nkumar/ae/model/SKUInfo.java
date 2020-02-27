@@ -10,29 +10,29 @@ import org.nkumar.ae.converter.SizeBeanField;
 public final class SKUInfo implements Keyed
 {
     @CsvBindByName
-    private  String SKU;
+    private String SKU;
     @CsvCustomBindByName(converter = GenderBeanField.class)
-    private  Gender gender;
+    private Gender gender;
     @CsvCustomBindByName(converter = MaterialBeanField.class)
-    private  Material material;
+    private Material material;
     @CsvBindByName
-    private  String shape;
+    private String shape;
     @CsvCustomBindByName(converter = SizeBeanField.class)
-    private  Size size;
+    private Size size;
     @CsvBindByName
-    private  String frameColor;
+    private String frameColor;
     @CsvBindByName
-    private  String frameFinish;
+    private String frameFinish;
     @CsvBindByName
-    private  String lensCoating;
+    private String lensCoating;
     @CsvBindByName
-    private  String lensFill;
+    private String lensFill;
     @CsvBindByName
-    private  String lensColor;
+    private String lensColor;
     @CsvBindByName
-    private  String lensFeature;
+    private String lensFeature;
     @CsvBindByName
-    private  int priceRange;
+    private int priceRange;
 
     public String getSKU()
     {

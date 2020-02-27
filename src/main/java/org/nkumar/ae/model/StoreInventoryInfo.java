@@ -1,4 +1,5 @@
 package org.nkumar.ae.model;
+
 import com.opencsv.bean.CsvBindByName;
 
 import static org.nkumar.ae.util.StringUtil.codify;

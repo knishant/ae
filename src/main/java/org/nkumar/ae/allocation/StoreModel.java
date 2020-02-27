@@ -114,7 +114,7 @@ public final class StoreModel
     public List<String> canBeAllocated(List<String> skuSet, Statics statics)
     {
         return skuSet.stream()
-                .filter(sku -> canBeAllocated(sku,statics))
+                .filter(sku -> canBeAllocated(sku, statics))
                 .collect(Collectors.toList());
     }
 

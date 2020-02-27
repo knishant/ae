@@ -100,7 +100,7 @@ public final class SKUSimilarity
         }
     }
 
-    private static <K,V> Map<K,V> filterMap(Map<K,V> map, Predicate<? super Map.Entry<K,V>> predicate)
+    private static <K, V> Map<K, V> filterMap(Map<K, V> map, Predicate<? super Map.Entry<K, V>> predicate)
     {
         return map.entrySet().stream().filter(predicate)
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));

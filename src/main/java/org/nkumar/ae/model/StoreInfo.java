@@ -12,7 +12,7 @@ public final class StoreInfo implements Keyed
     @CsvBindByName
     private String name;
     //higher value is higher grade
-    @CsvCustomBindByName(converter= GradeBeanField.class)
+    @CsvCustomBindByName(converter = GradeBeanField.class)
     private int grade;
 
     public String getStoreId()
