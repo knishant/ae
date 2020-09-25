@@ -12,6 +12,8 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+//stores static information about skus and stores
+//also stores similarity of skus
 public final class Statics
 {
     private final Map<String, SKUInfo> skuInfoMap;
@@ -20,7 +22,6 @@ public final class Statics
 
     private final SKUSimilarity similarity;
 
-    private final Map<String, StoreInfo> storeInfoMap;
     private final Set<String> validStoreIds;
 
     public Statics(List<SKUInfo> skuInfoList, List<StoreInfo> storeInfoList)
@@ -29,7 +30,7 @@ public final class Statics
                 .collect(Collectors.toMap(SKUInfo::getKey, Function.identity()));
         this.validSKUs = Collections.unmodifiableSet(skuInfoMap.keySet());
         this.similarity = SKUSimilarity.buildSKUSimilarity(skuInfoMap);
-        this.storeInfoMap = storeInfoList.stream()
+        Map<String, StoreInfo> storeInfoMap = storeInfoList.stream()
                 .collect(Collectors.toMap(StoreInfo::getKey, Function.identity()));
         this.validStoreIds = Collections.unmodifiableSet(storeInfoMap.keySet());
     }
@@ -44,25 +45,25 @@ public final class Statics
         return validStoreIds;
     }
 
-    public SKUInfo getSkuInfo(String sku)
+    SKUInfo getSkuInfo(String sku)
     {
         SKUInfo skuInfo = skuInfoMap.get(sku);
         Objects.requireNonNull(skuInfo, "sku is not valid : " + sku);
         return skuInfo;
     }
 
-    public GenderShape getGenderShapeForSKU(String sku)
+    GenderShape getGenderShapeForSKU(String sku)
     {
         SKUInfo skuInfo = getSkuInfo(sku);
         return new GenderShape(skuInfo.getGender(), skuInfo.getShape());
     }
 
-    public List<String> getExactMatchSkus(String sku)
+    List<String> getExactMatchSkus(String sku)
     {
         return this.similarity.getExactMatches(sku);
     }
 
-    public List<String> getPartialMatchSkus(String sku)
+    List<String> getPartialMatchSkus(String sku)
     {
         return this.similarity.getPartialMatches(sku);
     }

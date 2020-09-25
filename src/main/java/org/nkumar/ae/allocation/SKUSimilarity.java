@@ -106,7 +106,7 @@ public final class SKUSimilarity
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
-    public static SKUSimilarity buildSKUSimilarity(Map<String, SKUInfo> skuInfoMap)
+    static SKUSimilarity buildSKUSimilarity(Map<String, SKUInfo> skuInfoMap)
     {
         //treeset is important as sorted semantics is used later
         Set<String> skus = new TreeSet<>(skuInfoMap.keySet());
@@ -138,7 +138,7 @@ public final class SKUSimilarity
     }
 
     //all these attributes must match
-    static boolean matchFixedAttributes(SKUInfo info1, SKUInfo info2)
+    private static boolean matchFixedAttributes(SKUInfo info1, SKUInfo info2)
     {
         return info1.getMaterial() == info2.getMaterial() &&
                 info1.getShape().equals(info2.getShape()) &&
@@ -149,7 +149,7 @@ public final class SKUSimilarity
     }
 
     //return 0 for exact match, positive number for partial match and negative number for no match.
-    static int match(SKUInfo info1, SKUInfo info2)
+    private static int match(SKUInfo info1, SKUInfo info2)
     {
         if (!matchFixedAttributes(info1, info2))
         {
