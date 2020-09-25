@@ -55,7 +55,8 @@ public final class StoreModel
                 skusInStore.add(info.getSKU());
             }
             //TODO we still do not prevent aged skus from being recommended by non-sku match
-            if (info.getSold() > 0 && info.getAge() < 4)
+//            if (info.getSold() > 0 && info.getAge() < 4)
+            if (info.getSold() > 0)
             {
                 skusToAllocate.add(skuInfo.getSKU());
             }
