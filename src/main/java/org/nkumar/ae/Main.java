@@ -28,29 +28,35 @@ public final class Main
     {
         int moq = 10;
         File root = new File("tmp/sample");
-        LOG.log(Level.INFO, "Loading files in {0}", root.getAbsolutePath());
+        LOG.log(Level.INFO, "Loading files from {0}", root.getAbsolutePath());
         //load static info about all the skus
         List<SKUInfo> skuInfoList = LoadProcessor.loadSKU(new File(root, "skuinfo.csv"));
+        LOG.log(Level.INFO, "Loaded {0} valid skus from skuinfo.csv", skuInfoList.size());
 
         //load static information about each store.
         List<StoreInfo> storeInfoList = LoadProcessor.loadStoreInfo(new File(root, "storeInfo.csv"));
+        LOG.log(Level.INFO, "Loaded {0} valid store infos from storeInfo.csv", storeInfoList.size());
 
         Statics statics = new Statics(skuInfoList, storeInfoList);
 
         //load primary stock allocation ratio for each store
         Map<String/*storeId*/, PrimaryStockAllocationRatio> psarMap = LoadProcessor
                 .loadPSAR(new File(root, "psar.csv"), statics.getValidStoreIds());
+        LOG.log(Level.INFO, "Loaded PSAR for {0} stores from psar.csv", psarMap.size());
 
         //load warehouse inventory details
         WarehouseInventoryInfo whInventory = LoadProcessor
                 .loadWarehouseInventoryInfo(new File(root, "warehouseInventory.csv"), statics.getValidSKUs());
+        LOG.log(Level.INFO, "Loaded warehouse inventory numbers for {0} skus from warehouseInventory.csv",
+                whInventory.getNumOfSkus());
 
         //load inventory details of the store, including what was sold in the previous cycle
         Map<String/*storeId*/, List<StoreInventoryInfo>> storeInventoryInfoMap = LoadProcessor
                 .loadStoreInventoryInfo(new File(root, "storeInventory.csv"),
                         statics.getValidStoreIds(), statics.getValidSKUs());
 
-        LOG.log(Level.INFO, "Number of stores = {0}", storeInfoList.size());
+        LOG.log(Level.INFO, "Loaded store inventory details for {0} stores from storeInventory.csv",
+                storeInfoList.size());
 
         List<StoreModel> storeModels = storeInfoList.stream()
                 .filter(storeInfo -> {
@@ -86,7 +92,7 @@ public final class Main
 //        });
 
         int totalSkusToAllocate = storeModels.stream().mapToInt(s -> s.getSkusToAllocate().size()).sum();
-        System.out.println("totalSkusToAllocate = " + totalSkusToAllocate);
+        LOG.log(Level.INFO, "total Skus to allocate : {0}", totalSkusToAllocate);
 
         Engine engine = new Engine(whInventory, storeModels, statics);
         List<StoreAllocation> allocate = engine.allocate();
@@ -96,7 +102,8 @@ public final class Main
 
         StoreProcessor.storeAllocations(new File(root, "allocations.csv"), allocate);
 
-        System.out.println("Allocated " + (whInventory.getInitialTotalInventory() - whInventory.getTotalInventory())
-                + " from " + whInventory.getInitialTotalInventory() + " items");
+        LOG.log(Level.INFO, "Allocated {0} from {1} items",
+                new Object[]{(whInventory.getInitialTotalInventory() - whInventory.getTotalInventory()),
+                        whInventory.getInitialTotalInventory()});
     }
 }

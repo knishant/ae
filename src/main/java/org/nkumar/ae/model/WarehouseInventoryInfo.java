@@ -18,6 +18,11 @@ public final class WarehouseInventoryInfo
         this.initialTotalInventory = getTotalInventory();
     }
 
+    public int getNumOfSkus()
+    {
+        return map.size();
+    }
+
     public int getInitialTotalInventory()
     {
         return initialTotalInventory;
