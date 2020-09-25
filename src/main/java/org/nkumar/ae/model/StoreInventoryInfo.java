@@ -1,6 +1,9 @@
 package org.nkumar.ae.model;
 
 import com.opencsv.bean.CsvBindByName;
+import com.opencsv.bean.CsvCustomBindByName;
+
+import org.nkumar.ae.converter.AgeIntField;
 
 import static org.nkumar.ae.util.StringUtil.codify;
 
@@ -14,7 +17,7 @@ public class StoreInventoryInfo implements Keyed
     private int sold;
     @CsvBindByName
     private int available;
-    @CsvBindByName
+    @CsvCustomBindByName(converter = AgeIntField.class)
     private int age;
 
     public String getStoreId()
