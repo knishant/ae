@@ -1,9 +1,11 @@
 package org.nkumar.ae.model;
 
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.TreeMap;
 
 public final class WarehouseInventoryInfo
@@ -18,9 +20,9 @@ public final class WarehouseInventoryInfo
         this.initialTotalInventory = getTotalInventory();
     }
 
-    public int getNumOfSkus()
+    public Set<String> getSkus()
     {
-        return map.size();
+        return Collections.unmodifiableSet(map.keySet());
     }
 
     public int getInitialTotalInventory()
