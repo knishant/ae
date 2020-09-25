@@ -11,6 +11,7 @@ public final class SizeBeanField<I> extends AbstractBeanField<Size, I>
     @Override
     protected Size convert(String value) throws CsvDataTypeMismatchException, CsvConstraintViolationException
     {
-        return Size.valueOf(value.toUpperCase());
+        value = value.toUpperCase();
+        return "NA".equals(value) ? null : Size.valueOf(value);
     }
 }

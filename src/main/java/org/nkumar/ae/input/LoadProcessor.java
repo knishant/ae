@@ -61,7 +61,7 @@ public final class LoadProcessor
         private final Function<T, String> keyExtractor;
         private final String msg;
 
-        public CountingInvalidPredicate(Set<String> validIds, Function<T, String> keyExtractor, String msg)
+        private CountingInvalidPredicate(Set<String> validIds, Function<T, String> keyExtractor, String msg)
         {
             this.validIds = validIds;
             this.keyExtractor = keyExtractor;
@@ -81,7 +81,7 @@ public final class LoadProcessor
             return contains;
         }
 
-        public void logIfCountNonZero(String msg)
+        void logIfCountNonZero(String msg)
         {
             if (count.get() > 0)
             {
@@ -135,7 +135,9 @@ public final class LoadProcessor
 
     public static List<SKUInfo> loadSKU(File path)
     {
-        return CSVUtil.loadCSV(path, SKUInfo.class);
+        return CSVUtil.loadCSV(path, SKUInfo.class).stream()
+                //can be null when size is NA
+                .filter(skuInfo -> skuInfo.getSize() != null).collect(Collectors.toList());
     }
 
     public static final class PSARRow implements Keyed
