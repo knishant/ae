@@ -41,7 +41,7 @@ public final class LoadProcessor
         Map<String, PrimaryStockAllocationRatio> map = new TreeMap<>();
         CountingInvalidPredicate<PSARRow> validKeyPredicate = new CountingInvalidPredicate<>(
                 validStoreIds, PSARRow::getStoreId,
-                "Ignoring store in psar as it is not defined in storeinfo : {0}");
+                "Ignoring PSAR as its storeId ({0}) is not defined in storeinfo list");
         CSVUtil.loadCSV(path, PSARRow.class).stream()
                 .filter(validKeyPredicate)
                 .forEach(row -> {
@@ -95,7 +95,7 @@ public final class LoadProcessor
     {
         CountingInvalidPredicate<WarehouseInventoryRow> validKeyPredicate = new CountingInvalidPredicate<>(
                 validSKUs, WarehouseInventoryRow::getSKU,
-                "Ignoring sku in warehouse inventory as it is not defined in skuinfo : {0}");
+                "Ignoring warehouse inventory row as sku ({0}) is not defined in skuinfo list");
         Map<String, Integer> map = CSVUtil.loadCSV(path, WarehouseInventoryRow.class).stream()
                 .filter(validKeyPredicate)
                 .collect(Collectors.toMap(WarehouseInventoryRow::getSKU, WarehouseInventoryRow::getAvailable));
@@ -109,11 +109,11 @@ public final class LoadProcessor
     {
         CountingInvalidPredicate<StoreInventoryInfo> validKeyPredicate1 = new CountingInvalidPredicate<>(
                 validStoreIds, StoreInventoryInfo::getStoreId,
-                "Ignoring store in store inventory as it is not defined in storeinfo : {0}");
+                "Ignoring store inventory as storeId ({0}) is not defined in storeinfo list");
 
         CountingInvalidPredicate<StoreInventoryInfo> validKeyPredicate2 = new CountingInvalidPredicate<>(
                 validSKUs, StoreInventoryInfo::getSKU,
-                "Ignoring sku in store inventory as it is not defined in skuinfo : {0}");
+                "Ignoring store inventory as sku ({0}) is not defined in skuinfo list");
 
         Map<String, List<StoreInventoryInfo>> collect = CSVUtil.loadCSV(path, StoreInventoryInfo.class).stream()
                 .filter(validKeyPredicate1)
