@@ -57,12 +57,9 @@ public final class Main
         WarehouseInventoryInfo whInventory = LoadProcessor
                 .loadWarehouseInventoryInfo(new File(root, "warehouseInventory.csv"), statics.getValidSKUs());
         LOG.log(Level.INFO, "Loaded warehouse inventory numbers for {0} skus from warehouseInventory.csv",
-                whInventory.getSkus().size());
-
-        Set<String> skusWithoutInventoryDetails = new HashSet<>(statics.getValidSKUs());
-        skusWithoutInventoryDetails.removeAll(whInventory.getSkus());
-        LOG.log(Level.INFO, "{0} skus do not have any info about its inventory in the warehouse",
-                skusWithoutInventoryDetails.size());
+                whInventory.getNumOfSkus());
+        LOG.log(Level.INFO, "Inventory info about {0} skus missing",
+                skuInfoList.size() - whInventory.getNumOfSkus());
 
         //load inventory details of the store, including what was sold in the previous cycle
         Map<String/*storeId*/, List<StoreInventoryInfo>> storeInventoryInfoMap = LoadProcessor

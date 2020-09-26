@@ -20,9 +20,9 @@ public final class WarehouseInventoryInfo
         this.initialTotalInventory = getTotalInventory();
     }
 
-    public Set<String> getSkus()
+    public int getNumOfSkus()
     {
-        return Collections.unmodifiableSet(map.keySet());
+        return map.size();
     }
 
     public int getInitialTotalInventory()

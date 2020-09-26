@@ -120,10 +120,10 @@ public final class LoadProcessor
                 .collect(Collectors.groupingBy(StoreInventoryInfo::getStoreId));
 
         validKeyPredicate1.logIfCountNonZero(
-                "Ignored {0} stores in store inventory as they are not defined in storeinfo");
+                "Ignored {0} rows in store inventory as store id was not defined in storeinfo");
 
         validKeyPredicate2.logIfCountNonZero(
-                "Ignored {0} skus in store inventory as they are not defined in skuinfo");
+                "Ignored {0} rows in store inventory as sku was not defined in skuinfo");
         return collect;
     }
 
