@@ -134,9 +134,7 @@ public final class LoadProcessor
 
     public static List<SKUInfo> loadSKU(File path)
     {
-        return CSVUtil.loadCSV(path, SKUInfo.class).stream()
-                //can be null when size is NA
-                .filter(skuInfo -> skuInfo.getSize() != null).collect(Collectors.toList());
+        return CSVUtil.loadCSV(path, SKUInfo.class);
     }
 
     public static final class PSARRow implements Keyed
