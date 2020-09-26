@@ -80,7 +80,7 @@ public final class LoadProcessor
             return contains;
         }
 
-        void logIfCountNonZero(String msg)
+        private void logIfCountNonZero(String msg)
         {
             if (count.get() > 0)
             {
@@ -180,7 +180,7 @@ public final class LoadProcessor
             this.shape = shape;
         }
 
-        public int getQuantity()
+        private int getQuantity()
         {
             return quantity;
         }
@@ -214,7 +214,7 @@ public final class LoadProcessor
             this.SKU = codify(SKU);
         }
 
-        public int getAvailable()
+        private int getAvailable()
         {
             return available;
         }

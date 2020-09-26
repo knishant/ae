@@ -93,17 +93,17 @@ public final class StoreModel
         return skusToAllocate;
     }
 
-    public Map<String, String> getSkusAllocated()
+    Map<String, String> getSkusAllocated()
     {
         return skusAllocated;
     }
 
-    public PrimaryStockAllocationRatio getRatioGap()
+    private PrimaryStockAllocationRatio getRatioGap()
     {
         return ratioGap;
     }
 
-    public void allocate(SKUInfo skuInfo, String reason)
+    void allocate(SKUInfo skuInfo, String reason)
     {
         skusAllocated.put(skuInfo.getSKU(), reason);
         ratioGap.decrementQuantity(skuInfo.getGender(), skuInfo.getShape(), 1);
@@ -112,14 +112,14 @@ public final class StoreModel
     //return the filtered list of skus which can be allocated
     //that is not there in the store
     //its gendershape allocation gap is positive
-    public List<String> canBeAllocated(List<String> skuSet, Statics statics)
+    List<String> canBeAllocated(List<String> skuSet, Statics statics)
     {
         return skuSet.stream()
                 .filter(sku -> canBeAllocated(sku, statics))
                 .collect(Collectors.toList());
     }
 
-    public boolean canBeAllocated(String sku, Statics statics)
+    boolean canBeAllocated(String sku, Statics statics)
     {
         GenderShape gs = statics.getGenderShapeForSKU(sku);
         return !skusAllocated.containsKey(sku) && !skusInStore.contains(sku) && this.getRatioGap().needsAllocation(gs);
