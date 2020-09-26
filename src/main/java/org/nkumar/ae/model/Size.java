@@ -2,7 +2,7 @@ package org.nkumar.ae.model;
 
 public enum Size
 {
-    SMALL(1), MEDIUM(2), LARGE(3), OVERSIZED(4);
+    SMALL(1), MEDIUM(2), LARGE(3), OVERSIZED(4), NA (-1);
 
     private final int value;
 
