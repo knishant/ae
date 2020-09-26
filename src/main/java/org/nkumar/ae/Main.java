@@ -28,10 +28,16 @@ public final class Main
 
     public static void main(String[] args)
     {
+        //moq - minimum order quantity
+        //if the gap in a store is less than this value, then the store is ignored for allocation
         int moq = 10;
+
+        //root directory where the csvs are located
         File root = new File("tmp/sample");
         LOG.log(Level.INFO, "Loading files from {0}", root.getAbsolutePath());
+
         //load static info about all the skus
+        //duplicate skus are ignored
         List<SKUInfo> skuInfoList = LoadProcessor.loadSKU(new File(root, "skuinfo.csv"));
         LOG.log(Level.INFO, "Loaded {0} valid skus from skuinfo.csv", skuInfoList.size());
 
@@ -39,14 +45,15 @@ public final class Main
         List<StoreInfo> storeInfoList = LoadProcessor.loadStoreInfo(new File(root, "storeInfo.csv"));
         LOG.log(Level.INFO, "Loaded {0} valid store infos from storeInfo.csv", storeInfoList.size());
 
+        //combine all the static information, like sku list, store list, sku similarity etc
         Statics statics = new Statics(skuInfoList, storeInfoList);
 
-        //load primary stock allocation ratio for each store
+        //load primary stock allocation ratio for each valid store
         Map<String/*storeId*/, PrimaryStockAllocationRatio> psarMap = LoadProcessor
                 .loadPSAR(new File(root, "psar.csv"), statics.getValidStoreIds());
         LOG.log(Level.INFO, "Loaded PSAR for {0} stores from psar.csv", psarMap.size());
 
-        //load warehouse inventory details
+        //load warehouse inventory details for each valid sku
         WarehouseInventoryInfo whInventory = LoadProcessor
                 .loadWarehouseInventoryInfo(new File(root, "warehouseInventory.csv"), statics.getValidSKUs());
         LOG.log(Level.INFO, "Loaded warehouse inventory numbers for {0} skus from warehouseInventory.csv",
@@ -72,8 +79,9 @@ public final class Main
                             && psarMap.containsKey(storeId);
                     if (!valid)
                     {
-                        LOG.log(Level.WARNING,
-                                "Not allocating store {0} as either inventory info or PSAR for store is missing", storeId);
+                        LOG.log(Level.FINE,
+                                "Not allocating store {0} as either inventory info or PSAR for store is missing",
+                                storeId);
                     }
                     return valid;
                 })
@@ -89,6 +97,11 @@ public final class Main
                         .thenComparing(StoreModel::getTotalGap)
                         .thenComparingInt(StoreModel::getGrade).reversed())
                 .collect(Collectors.toList());
+
+//        for (StoreModel storeModel : storeModels)
+//        {
+//            System.out.println("store " + storeModel.getStoreId() + " TotalGap = " + storeModel.getTotalGap());
+//        }
 
         LOG.log(Level.INFO, "Allocating SKUs to {0} stores, whose gap is more than moq",
                 storeModels.size());

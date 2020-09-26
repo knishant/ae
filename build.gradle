@@ -19,6 +19,7 @@ dependencies {
 task runSample(type: JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
     main = 'org.nkumar.ae.Main'
+    systemProperties = ['java.util.logging.config.file':'logging.properties']
     // arguments to pass to the application
 //    args 'appArg1'
 }

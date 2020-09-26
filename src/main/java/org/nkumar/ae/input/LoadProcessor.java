@@ -75,7 +75,7 @@ public final class LoadProcessor
             if (!contains)
             {
                 count.incrementAndGet();
-                LOG.log(Level.WARNING, msg, key);
+                LOG.log(Level.FINE, msg, key);
             }
             return contains;
         }

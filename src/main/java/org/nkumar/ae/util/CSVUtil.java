@@ -60,7 +60,7 @@ public final class CSVUtil
             if (!nonExistent)
             {
                 ignoreCount.incrementAndGet();
-                LOG.log(Level.WARNING, "Ignoring duplicate key while parsing {0} : {1}", new Object[]{path, key});
+                LOG.log(Level.FINE, "Ignoring duplicate key while parsing {0} : {1}", new Object[]{path, key});
             }
             return nonExistent;
         };
