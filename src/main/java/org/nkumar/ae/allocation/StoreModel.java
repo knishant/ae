@@ -17,6 +17,9 @@ import java.util.stream.Collectors;
 
 public final class StoreModel
 {
+    //do not replace skus which have been on shelf for more than this limit
+    private static final int MAX_SHELF_AGE = 120;
+
     private final String storeId;
     private final String name;
     private final int grade;
@@ -55,8 +58,7 @@ public final class StoreModel
                 skusInStore.add(info.getSKU());
             }
             //TODO we still do not prevent aged skus from being recommended by non-sku match
-//            if (info.getSold() > 0 && info.getAge() < 4)
-            if (info.getSold() > 0)
+            if (info.getSold() > 0 && info.getAge() < MAX_SHELF_AGE)
             {
                 skusToAllocate.add(skuInfo.getSKU());
             }

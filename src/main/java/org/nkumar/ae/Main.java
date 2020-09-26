@@ -14,10 +14,8 @@ import org.nkumar.ae.output.StoreProcessor;
 
 import java.io.File;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -100,8 +98,7 @@ public final class Main
 //            System.out.println("store " + storeModel.getStoreId() + " TotalGap = " + storeModel.getTotalGap());
 //        }
 
-        LOG.log(Level.INFO, "Allocating SKUs to {0} stores, whose gap is more than moq",
-                storeModels.size());
+        LOG.log(Level.INFO, "Allocating SKUs to {0} stores, whose gap is more than moq", storeModels.size());
 
 //        storeModels.forEach(s -> {
 //            System.out.println(s.getStoreId() + " -> toAllocate=" + s.getSkusToAllocate().size()
