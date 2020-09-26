@@ -103,10 +103,6 @@ public final class Main
 
         Engine engine = new Engine(whInventory, storeModels, statics);
         List<StoreAllocation> allocate = engine.allocate();
-//        allocate.forEach(storeAllocation -> {
-//            System.out.println(storeAllocation);
-//        });
-
         StoreProcessor.storeAllocations(new File(root, "allocations.csv"), allocate);
 
         LOG.log(Level.INFO, "Allocated {0} from {1} items",
