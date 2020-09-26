@@ -73,7 +73,7 @@ public final class Main
                     if (!valid)
                     {
                         LOG.log(Level.WARNING,
-                                "Not allocating store {0} as either inventory info or PSAR is missing", storeId);
+                                "Not allocating store {0} as either inventory info or PSAR for store is missing", storeId);
                     }
                     return valid;
                 })
