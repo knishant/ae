@@ -56,7 +56,7 @@ public final class Main
                 .loadWarehouseInventoryInfo(new File(root, "warehouseInventory.csv"), statics.getValidSKUs());
         LOG.log(Level.INFO, "Loaded warehouse inventory numbers for {0} skus from warehouseInventory.csv",
                 whInventory.getNumOfSkus());
-        LOG.log(Level.INFO, "Inventory info about {0} skus missing",
+        LOG.log(Level.WARNING, "Inventory info about {0} skus missing",
                 skuInfoList.size() - whInventory.getNumOfSkus());
 
         //load inventory details of the store, including what was sold in the previous cycle
