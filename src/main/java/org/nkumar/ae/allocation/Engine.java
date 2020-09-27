@@ -3,6 +3,7 @@ package org.nkumar.ae.allocation;
 import org.nkumar.ae.model.StoreAllocation;
 import org.nkumar.ae.model.WarehouseInventoryInfo;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -35,7 +36,8 @@ public final class Engine
             storeModel.getSkusToAllocate().removeIf(skuToAllocate -> allocatePartialMatch(skuToAllocate, storeModel));
         }
         return storeModels.stream()
-                .map(model -> new StoreAllocation(model.getStoreId(), model.getSkusAllocated()))
+                .map(StoreModel::getAllocations)
+                .flatMap(Collection::stream)
                 .collect(Collectors.toList());
     }
 
@@ -45,7 +47,7 @@ public final class Engine
         {
             return false;
         }
-        allocateSku(sku, storeModel, "SKU Match");
+        allocateSku(sku, storeModel, "SKU Match", sku);
         return true;
     }
 
@@ -55,7 +57,7 @@ public final class Engine
         List<String> list = statics.getExactMatchSkus(sku);
         list = storeModel.canBeAllocatedForNonSkuMatch(list, statics);
         Optional<String> maxSku = whInfo.getOneWithMaxStock(list);
-        maxSku.ifPresent(allocatedSku -> allocateSku(allocatedSku, storeModel, "Exact Match of " + sku));
+        maxSku.ifPresent(allocatedSku -> allocateSku(allocatedSku, storeModel, "Exact Match", sku));
         return maxSku.isPresent();
     }
 
@@ -65,13 +67,14 @@ public final class Engine
         List<String> list = statics.getPartialMatchSkus(sku);
         list = storeModel.canBeAllocatedForNonSkuMatch(list, statics);
         Optional<String> firstSku = whInfo.getFirstWithAnyStock(list);
-        firstSku.ifPresent(allocatedSku -> allocateSku(allocatedSku, storeModel, "Partial Match of " + sku));
+        firstSku.ifPresent(allocatedSku -> allocateSku(allocatedSku, storeModel, "Partial Match", sku));
         return firstSku.isPresent();
     }
 
-    private void allocateSku(String allocatedSku, StoreModel storeModel, String reason)
+    private void allocateSku(String allocatedSku, StoreModel storeModel, String mode, String secondarySku)
     {
-        storeModel.allocate(statics.getSkuInfo(allocatedSku), reason);
+        storeModel.allocate(statics.getSkuInfo(allocatedSku),
+                new StoreAllocation(storeModel.getStoreId(), allocatedSku, mode, secondarySku));
         whInfo.decrementInventory(allocatedSku);
     }
 }

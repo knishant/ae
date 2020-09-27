@@ -1,5 +1,6 @@
 package org.nkumar.ae.output;
 
+
 import org.nkumar.ae.model.StoreAllocation;
 
 import java.io.File;
@@ -8,7 +9,6 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.Map;
 
 public final class StoreProcessor
 {
@@ -20,16 +20,13 @@ public final class StoreProcessor
     {
         try (Writer out = new OutputStreamWriter(new FileOutputStream(path), StandardCharsets.UTF_8))
         {
-            out.write("storeId,SKU,reason\n");
+            out.write("storeId,SKU,mode,secSKU\n");
             for (StoreAllocation sa : list)
             {
-                Map<String, String> allocations = sa.getAllocations();
-                for (String sku : allocations.keySet())
-                {
-                    out.append(sa.getStoreId()).append(',');
-                    out.append(sku).append(',');
-                    out.append(allocations.get(sku)).append('\n');
-                }
+                out.append(sa.getStoreId()).append(',');
+                out.append(sa.getSku()).append(',');
+                out.append(sa.getMode()).append(',');
+                out.append(sa.getSecondarySku()).append('\n');
             }
         }
         catch (Exception e)

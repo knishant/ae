@@ -1,18 +1,18 @@
 package org.nkumar.ae.model;
 
-import java.util.Collections;
-import java.util.Map;
-
 public final class StoreAllocation
 {
     private final String storeId;
+    private final String sku;
+    private final String mode;
+    private final String secondarySku;
 
-    private final Map<String/*SKU*/, String/*reason*/> allocations;
-
-    public StoreAllocation(String storeId, Map<String, String> allocations)
+    public StoreAllocation(String storeId, String sku, String mode, String secondarySku)
     {
         this.storeId = storeId;
-        this.allocations = Collections.unmodifiableMap(allocations);
+        this.sku = sku;
+        this.mode = mode;
+        this.secondarySku = secondarySku;
     }
 
     public String getStoreId()
@@ -20,17 +20,18 @@ public final class StoreAllocation
         return storeId;
     }
 
-    public Map<String, String> getAllocations()
+    public String getSku()
     {
-        return allocations;
+        return sku;
     }
 
-    @Override
-    public String toString()
+    public String getMode()
     {
-        return "StoreAllocation{" +
-                "storeId='" + storeId + '\'' +
-                ", allocations=" + allocations +
-                '}';
+        return mode;
+    }
+
+    public String getSecondarySku()
+    {
+        return secondarySku;
     }
 }

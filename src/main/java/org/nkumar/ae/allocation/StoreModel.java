@@ -3,11 +3,12 @@ package org.nkumar.ae.allocation;
 import org.nkumar.ae.model.GenderShape;
 import org.nkumar.ae.model.PrimaryStockAllocationRatio;
 import org.nkumar.ae.model.SKUInfo;
+import org.nkumar.ae.model.StoreAllocation;
 import org.nkumar.ae.model.StoreInfo;
 import org.nkumar.ae.model.StoreInventoryInfo;
 
+import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -29,7 +30,8 @@ public final class StoreModel
 
     private final Set<String> skusToAllocate = new HashSet<>();
     private final Set<String> skusInStore = new HashSet<>();
-    private final Map<String, String> skusAllocated = new LinkedHashMap<>();
+    private final Set<String> skusAllocated = new HashSet<>();
+    private final List<StoreAllocation> allocations = new ArrayList<>();
 
     private final PrimaryStockAllocationRatio ratioGap;
 
@@ -95,9 +97,9 @@ public final class StoreModel
         return skusToAllocate;
     }
 
-    Map<String, String> getSkusAllocated()
+    List<StoreAllocation> getAllocations()
     {
-        return skusAllocated;
+        return allocations;
     }
 
     private PrimaryStockAllocationRatio getRatioGap()
@@ -105,9 +107,10 @@ public final class StoreModel
         return ratioGap;
     }
 
-    void allocate(SKUInfo skuInfo, String reason)
+    void allocate(SKUInfo skuInfo, StoreAllocation allocation)
     {
-        skusAllocated.put(skuInfo.getSKU(), reason);
+        allocations.add(allocation);
+        skusAllocated.add(skuInfo.getSKU());
         ratioGap.decrementQuantity(skuInfo.getGender(), skuInfo.getShape(), 1);
     }
 
@@ -119,7 +122,7 @@ public final class StoreModel
         return skuSet.stream()
                 .filter(sku ->
                         //sku was not allocated by any previous rule
-                        !skusAllocated.containsKey(sku)
+                        !skusAllocated.contains(sku)
                                 //sku was not there already in the store even before any allocation
                                 && !skusInStore.contains(sku)
                                 //psar for this sku still has a gap
