@@ -13,8 +13,7 @@ public final class Engine
     private final List<StoreModel> storeModels;
     private final Statics statics;
 
-    public Engine(WarehouseInventoryInfo whInfo, List<StoreModel> storeModels,
-            Statics statics)
+    public Engine(WarehouseInventoryInfo whInfo, List<StoreModel> storeModels, Statics statics)
     {
         this.whInfo = whInfo;
         this.storeModels = storeModels;
@@ -42,12 +41,11 @@ public final class Engine
 
     private boolean allocateSKUMatch(String sku, StoreModel storeModel)
     {
-        if (!storeModel.canBeAllocated(sku, statics) || !whInfo.hasAvailableInventory(sku))
+        if (!storeModel.canBeAllocatedForSkuMatch(sku, statics) || !whInfo.hasAvailableInventory(sku))
         {
             return false;
         }
-        storeModel.allocate(statics.getSkuInfo(sku), "SKU Match");
-        whInfo.decrementInventory(sku);
+        allocateSku(sku, storeModel, "SKU Match");
         return true;
     }
 
@@ -55,7 +53,7 @@ public final class Engine
     private boolean allocateExactMatch(String sku, StoreModel storeModel)
     {
         List<String> list = statics.getExactMatchSkus(sku);
-        list = storeModel.canBeAllocated(list, statics);
+        list = storeModel.canBeAllocatedForNonSkuMatch(list, statics);
         Optional<String> maxSku = whInfo.getOneWithMaxStock(list);
         maxSku.ifPresent(allocatedSku -> allocateSku(allocatedSku, storeModel, "Exact Match of " + sku));
         return maxSku.isPresent();
@@ -65,7 +63,7 @@ public final class Engine
     private boolean allocatePartialMatch(String sku, StoreModel storeModel)
     {
         List<String> list = statics.getPartialMatchSkus(sku);
-        list = storeModel.canBeAllocated(list, statics);
+        list = storeModel.canBeAllocatedForNonSkuMatch(list, statics);
         Optional<String> firstSku = whInfo.getFirstWithAnyStock(list);
         firstSku.ifPresent(allocatedSku -> allocateSku(allocatedSku, storeModel, "Partial Match of " + sku));
         return firstSku.isPresent();

@@ -114,16 +114,29 @@ public final class StoreModel
     //return the filtered list of skus which can be allocated
     //that is not there in the store
     //its gendershape allocation gap is positive
-    List<String> canBeAllocated(List<String> skuSet, Statics statics)
+    List<String> canBeAllocatedForNonSkuMatch(List<String> skuSet, Statics statics)
     {
         return skuSet.stream()
-                .filter(sku -> canBeAllocated(sku, statics))
+                .filter(sku ->
+                        //sku was not allocated by any previous rule
+                        !skusAllocated.containsKey(sku)
+                                //sku was not there already in the store even before any allocation
+                                && !skusInStore.contains(sku)
+                                //psar for this sku still has a gap
+                                && psarCheck(sku, statics))
                 .collect(Collectors.toList());
     }
 
-    boolean canBeAllocated(String sku, Statics statics)
+    boolean canBeAllocatedForSkuMatch(String sku, Statics statics)
+    {
+        //for sku match, same sku can be allocated multiple times as long as psar gap is met
+        return psarCheck(sku, statics);
+    }
+
+    //check that psar for this sku still has a gap
+    private boolean psarCheck(String sku, Statics statics)
     {
         GenderShape gs = statics.getGenderShapeForSKU(sku);
-        return !skusAllocated.containsKey(sku) && !skusInStore.contains(sku) && this.getRatioGap().needsAllocation(gs);
+        return this.getRatioGap().needsAllocation(gs);
     }
 }
