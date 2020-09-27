@@ -57,7 +57,8 @@ public final class Engine
         List<String> list = statics.getExactMatchSkus(sku);
         list = storeModel.canBeAllocated(list, statics);
         Optional<String> maxSku = whInfo.getOneWithMaxStock(list);
-        return allocateSku(maxSku, storeModel, "Exact Match of " + sku);
+        maxSku.ifPresent(allocatedSku -> allocateSku(allocatedSku, storeModel, "Exact Match of " + sku));
+        return maxSku.isPresent();
     }
 
     //sku for which exact sku match did not work
@@ -66,15 +67,13 @@ public final class Engine
         List<String> list = statics.getPartialMatchSkus(sku);
         list = storeModel.canBeAllocated(list, statics);
         Optional<String> firstSku = whInfo.getFirstWithAnyStock(list);
-        return allocateSku(firstSku, storeModel, "Partial Match of " + sku);
+        firstSku.ifPresent(allocatedSku -> allocateSku(allocatedSku, storeModel, "Partial Match of " + sku));
+        return firstSku.isPresent();
     }
 
-    private boolean allocateSku(Optional<String> sku, StoreModel storeModel, String reason)
+    private void allocateSku(String allocatedSku, StoreModel storeModel, String reason)
     {
-        sku.ifPresent(allocatedSku -> {
-            storeModel.allocate(statics.getSkuInfo(allocatedSku), reason);
-            whInfo.decrementInventory(allocatedSku);
-        });
-        return sku.isPresent();
+        storeModel.allocate(statics.getSkuInfo(allocatedSku), reason);
+        whInfo.decrementInventory(allocatedSku);
     }
 }
