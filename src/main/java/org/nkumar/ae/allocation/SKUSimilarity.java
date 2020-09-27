@@ -155,7 +155,6 @@ public final class SKUSimilarity
         {
             return -1;
         }
-        int rank = 0;
         int dissimilarity = 0;
         {
             //one level of price diff allowed
@@ -163,7 +162,6 @@ public final class SKUSimilarity
             if (priceRangeDiff == 1)
             {
                 dissimilarity++;
-                rank = 1;
             }
             else if (priceRangeDiff > 1)
             {
@@ -174,14 +172,12 @@ public final class SKUSimilarity
             if (!info1.getLensFeature().equals(info2.getLensFeature()))
             {
                 dissimilarity++;
-                rank = 2;
             }
         }
         {
             if (!info1.getFrameFinish().equals(info2.getFrameFinish()))
             {
                 dissimilarity++;
-                rank = 3;
             }
         }
         {
@@ -190,7 +186,6 @@ public final class SKUSimilarity
             if (sizeDiff == 1)
             {
                 dissimilarity++;
-                rank = 4;
             }
             else if (sizeDiff > 1)
             {
@@ -203,7 +198,6 @@ public final class SKUSimilarity
             if (genderDiff == 1)
             {
                 dissimilarity++;
-                rank = 100;
             }
             else if (genderDiff > 1)
             {
@@ -219,6 +213,6 @@ public final class SKUSimilarity
             //only one difference allowed
             return -1;
         }
-        return rank;
+        return 1;
     }
 }
