@@ -148,7 +148,7 @@ public final class SKUSimilarity
                 info1.getLensColor().equals(info2.getLensColor());
     }
 
-    //return 0 for exact match, positive number for partial match and negative number for no match.
+    //return 0 for exact match, 1 for partial match and -1 for no match.
     private static int match(SKUInfo info1, SKUInfo info2)
     {
         if (!matchFixedAttributes(info1, info2))
