@@ -5,14 +5,14 @@ public final class StoreAllocation
     private final String storeId;
     private final String sku;
     private final String mode;
-    private final String secondarySku;
+    private final String replenishmentFor;
 
-    public StoreAllocation(String storeId, String sku, String mode, String secondarySku)
+    public StoreAllocation(String storeId, String sku, String mode, String replenishmentFor)
     {
         this.storeId = storeId;
         this.sku = sku;
         this.mode = mode;
-        this.secondarySku = secondarySku;
+        this.replenishmentFor = replenishmentFor;
     }
 
     public String getStoreId()
@@ -30,8 +30,8 @@ public final class StoreAllocation
         return mode;
     }
 
-    public String getSecondarySku()
+    public String getReplenishmentFor()
     {
-        return secondarySku;
+        return replenishmentFor;
     }
 }

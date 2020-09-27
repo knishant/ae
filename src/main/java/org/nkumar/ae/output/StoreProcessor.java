@@ -20,13 +20,13 @@ public final class StoreProcessor
     {
         try (Writer out = new OutputStreamWriter(new FileOutputStream(path), StandardCharsets.UTF_8))
         {
-            out.write("storeId,SKU,mode,secSKU\n");
+            out.write("storeId,SKU,mode,replenishmentFor\n");
             for (StoreAllocation sa : list)
             {
                 out.append(sa.getStoreId()).append(',');
                 out.append(sa.getSku()).append(',');
                 out.append(sa.getMode()).append(',');
-                out.append(sa.getSecondarySku()).append('\n');
+                out.append(sa.getReplenishmentFor()).append('\n');
             }
         }
         catch (Exception e)

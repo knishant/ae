@@ -8,6 +8,7 @@ import org.nkumar.ae.model.StoreInfo;
 import org.nkumar.ae.model.StoreInventoryInfo;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -25,12 +26,19 @@ public final class StoreModel
     private final String name;
     private final int grade;
 
-    private final int sale;
+    private final int toReplenishCount;
     private final int totalGap;
 
-    private final Set<String> skusToAllocate = new HashSet<>();
+    //sku and the count for the sku to replenish
+    private final Map<String, Integer> skusToAllocate = new HashMap<>();
+
+    //sku already in store
     private final Set<String> skusInStore = new HashSet<>();
+
+    //skus which were allocated during the allocation cycle
     private final Set<String> skusAllocated = new HashSet<>();
+
+    //full list of allocations
     private final List<StoreAllocation> allocations = new ArrayList<>();
 
     private final PrimaryStockAllocationRatio ratioGap;
@@ -41,7 +49,6 @@ public final class StoreModel
         this.storeId = storeInfo.getStoreId();
         this.name = storeInfo.getName();
         this.grade = storeInfo.getGrade();
-        this.sale = inventoryInfoList.stream().mapToInt(StoreInventoryInfo::getSold).sum();
         int totalAvailable = inventoryInfoList.stream().mapToInt(StoreInventoryInfo::getAvailable).sum();
         this.totalGap = ratio.getCapacity() - totalAvailable;
 
@@ -62,9 +69,10 @@ public final class StoreModel
             //TODO we still do not prevent aged skus from being recommended by non-sku match
             if (info.getSold() > 0 && info.getAge() < MAX_SHELF_AGE)
             {
-                skusToAllocate.add(skuInfo.getSKU());
+                skusToAllocate.put(skuInfo.getSKU(), info.getSold());
             }
         });
+        this.toReplenishCount = this.skusToAllocate.values().stream().mapToInt(Integer::intValue).sum();
     }
 
     public String getStoreId()
@@ -82,9 +90,9 @@ public final class StoreModel
         return grade;
     }
 
-    public int getSale()
+    public int getToReplenishCount()
     {
-        return sale;
+        return toReplenishCount;
     }
 
     public int getTotalGap()
@@ -92,9 +100,12 @@ public final class StoreModel
         return totalGap;
     }
 
-    public Set<String> getSkusToAllocate()
+    int applyAllocationRule(Function<String, Boolean> allocationFunction)
     {
-        return skusToAllocate;
+        return (int) new HashSet<>(skusToAllocate.keySet()).stream()
+                .map(allocationFunction)
+                .filter(status -> status)
+                .count();
     }
 
     List<StoreAllocation> getAllocations()
@@ -107,10 +118,12 @@ public final class StoreModel
         return ratioGap;
     }
 
-    void allocate(SKUInfo skuInfo, StoreAllocation allocation)
+    void allocateItem(SKUInfo skuInfo, StoreAllocation allocation)
     {
         allocations.add(allocation);
         skusAllocated.add(skuInfo.getSKU());
+        skusToAllocate.computeIfPresent(allocation.getReplenishmentFor(),
+                (key, count) -> count <= 1 ? null : count - 1);
         ratioGap.decrementQuantity(skuInfo.getGender(), skuInfo.getShape(), 1);
     }
 

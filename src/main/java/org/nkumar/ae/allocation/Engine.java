@@ -6,10 +6,14 @@ import org.nkumar.ae.model.WarehouseInventoryInfo;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 public final class Engine
 {
+    private static final Logger LOG = Logger.getLogger(Engine.class.getName());
+
     private final WarehouseInventoryInfo whInfo;
     private final List<StoreModel> storeModels;
     private final Statics statics;
@@ -23,18 +27,38 @@ public final class Engine
 
     public List<StoreAllocation> allocate()
     {
-        for (StoreModel storeModel : storeModels)
+        int allocations;
+        int iteration = 0;
+        do
         {
-            storeModel.getSkusToAllocate().removeIf(skuToAllocate -> allocateSKUMatch(skuToAllocate, storeModel));
-        }
-        for (StoreModel storeModel : storeModels)
+            allocations = 0;
+            iteration++;
+            for (StoreModel storeModel : storeModels)
+            {
+                allocations += storeModel.applyAllocationRule(
+                        skuToAllocate -> allocateSKUMatch(skuToAllocate, storeModel));
+            }
+            LOG.log(Level.INFO, "Allocations in SKU match iteration {0} = {1}", new Object[]{iteration, allocations});
+        } while (allocations > 0);
         {
-            storeModel.getSkusToAllocate().removeIf(skuToAllocate -> allocateExactMatch(skuToAllocate, storeModel));
+            allocations = 0;
+            for (StoreModel storeModel : storeModels)
+            {
+                allocations += storeModel.applyAllocationRule(
+                        skuToAllocate -> allocateExactMatch(skuToAllocate, storeModel));
+            }
+            LOG.log(Level.INFO, "Allocations in exact match = {0}", allocations);
         }
-        for (StoreModel storeModel : storeModels)
         {
-            storeModel.getSkusToAllocate().removeIf(skuToAllocate -> allocatePartialMatch(skuToAllocate, storeModel));
+            allocations = 0;
+            for (StoreModel storeModel : storeModels)
+            {
+                allocations += storeModel.applyAllocationRule(
+                        skuToAllocate -> allocatePartialMatch(skuToAllocate, storeModel));
+            }
+            LOG.log(Level.INFO, "Allocations in partial match = {0}", allocations);
         }
+
         return storeModels.stream()
                 .map(StoreModel::getAllocations)
                 .flatMap(Collection::stream)
@@ -73,7 +97,7 @@ public final class Engine
 
     private void allocateSku(String allocatedSku, StoreModel storeModel, String mode, String secondarySku)
     {
-        storeModel.allocate(statics.getSkuInfo(allocatedSku),
+        storeModel.allocateItem(statics.getSkuInfo(allocatedSku),
                 new StoreAllocation(storeModel.getStoreId(), allocatedSku, mode, secondarySku));
         whInfo.decrementInventory(allocatedSku);
     }

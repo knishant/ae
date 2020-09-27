@@ -88,7 +88,7 @@ public final class Main
                             skuInfoList);
                 })
                 .filter(s -> s.getTotalGap() >= moq)
-                .sorted(Comparator.comparingInt(StoreModel::getSale)
+                .sorted(Comparator.comparingInt(StoreModel::getToReplenishCount)
                         .thenComparing(StoreModel::getTotalGap)
                         .thenComparingInt(StoreModel::getGrade).reversed())
                 .collect(Collectors.toList());
@@ -105,8 +105,8 @@ public final class Main
 //                    + ", sale=" + s.getSale() + ", gap=" + s.getTotalGap() + ", grade=" + s.getGrade());
 //        });
 
-        int totalSkusToAllocate = storeModels.stream().mapToInt(s -> s.getSkusToAllocate().size()).sum();
-        LOG.log(Level.INFO, "Total Skus to allocate : {0}", totalSkusToAllocate);
+        LOG.log(Level.INFO, "Total items to allocate : {0}",
+                storeModels.stream().mapToInt(StoreModel::getToReplenishCount).sum());
 
         Engine engine = new Engine(whInventory, storeModels, statics);
         List<StoreAllocation> allocate = engine.allocate();
