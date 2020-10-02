@@ -98,21 +98,25 @@ public final class Main
 //            System.out.println("store " + storeModel.getStoreId() + " TotalGap = " + storeModel.getTotalGap());
 //        }
 
-        LOG.log(Level.INFO, "Allocating SKUs to {0} stores, whose gap is more than moq", storeModels.size());
+        LOG.log(Level.INFO, "Replenish SKUs to {0} stores, whose gap is more than moq", storeModels.size());
 
 //        storeModels.forEach(s -> {
 //            System.out.println(s.getStoreId() + " -> toAllocate=" + s.getSkusToAllocate().size()
 //                    + ", sale=" + s.getSale() + ", gap=" + s.getTotalGap() + ", grade=" + s.getGrade());
 //        });
-
-        LOG.log(Level.INFO, "Total items to allocate : {0}",
+        for (StoreModel sm : storeModels)
+        {
+            LOG.log(Level.FINER, "Store ({0}) : replenish count = {1}, gap = {2}",
+                    new Object[]{sm.getStoreId(), sm.getToReplenishCount(), sm.getTotalGap()});
+        }
+        LOG.log(Level.INFO, "Total items to replenish : {0}",
                 storeModels.stream().mapToInt(StoreModel::getToReplenishCount).sum());
 
         Engine engine = new Engine(whInventory, storeModels, statics);
         List<StoreAllocation> allocate = engine.allocate();
         StoreProcessor.storeAllocations(new File(root, "allocations.csv"), allocate);
 
-        LOG.log(Level.INFO, "Allocated {0} from {1} items",
+        LOG.log(Level.INFO, "Replenished {0} from {1} items",
                 new Object[]{(whInventory.getInitialTotalInventory() - whInventory.getTotalInventory()),
                         whInventory.getInitialTotalInventory()});
     }
